@@ -1,0 +1,7 @@
+#version 400
+
+layout(location = 0) in vec2 Position_VS_in;
+out vec3 vPos;
+void main() {
+    vPos = vec3(Position_VS_in, 0.0);
+}
