@@ -36,7 +36,7 @@ bool fullscreen = false;
 bool active = TRUE;
 
 static Texture *gradient_texture;
-static ShaderProgram *wave_shader;
+static ShaderProgram *wave_shader, *point_shader;
 
 static bool _main_loop_running = true;
 bool main_loop_running() { return _main_loop_running; }
@@ -92,6 +92,12 @@ void draw() {
 	//glVertexAttribPointer(ATTRIB_POSITION, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), 0);
 	glBindVertexArray(VAOid);	
 	glDrawArrays(GL_PATCHES, 0, 4);
+	
+	glUseProgram(point_shader->getProgramHandle());
+
+	point_shader->update_uniform_mat4("uMVP", mvp);
+
+	glDrawArrays(GL_POINTS, 0, 4);
 
 }
 
@@ -130,8 +136,9 @@ int init_GL() {
 	ADD_ATTRIB(default_attrib_bindings, ATTRIB_POSITION, "Position_VS_in");
 
 	wave_shader = new ShaderProgram("shaders/wave", default_attrib_bindings);
+	point_shader = new ShaderProgram("shaders/pointplot", default_attrib_bindings);
 
-	float patch_buffer[4 * 2] = { 0.0, 0.0, 1.0, 1.0, 10, 0.0, 7.0, 5 };
+	float patch_buffer[4 * 2] = { 0.0, 0.0, 1.0, 1.0, 5, 0.0, 7.0, 5 };
 
 	glGenVertexArrays(1, &VAOid);
 	glBindVertexArray(VAOid);
