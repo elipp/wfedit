@@ -21,14 +21,6 @@ enum {
 	ATTRIB_TEXCOORD = 2
 };
 
-#ifndef GL_TESS_EVALUATION_SHADER
-#define GL_TESS_EVALUATION_SHADER 0x0
-#endif
-
-#ifndef GL_TESS_CONTROL_SHADER
-#define GL_TESS_CONTROL_SHADER 0x0
-#endif
-
 
 enum { 
 		VertexShader = 0, 

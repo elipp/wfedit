@@ -42,6 +42,8 @@ static bool _main_loop_running = true;
 bool main_loop_running() { return _main_loop_running; }
 void stop_main_loop() { _main_loop_running = false; }
 
+void kill_GL_window();
+
 void set_cursor_relative_pos(int x, int y) {
 	POINT pt;
 	pt.x = x;
@@ -79,16 +81,17 @@ int generate_vertices(float *samples, size_t num_samples) {
 
 void draw() {
 
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
 	glUseProgram(wave_shader->getProgramHandle());
 
-	mat4 mvp = mat4::identity();
-	mvp = mat4::proj_ortho(0.0, WIN_W, WIN_H, 0.0, -1.0, 1.0) * mat4::scale(500, 500, 500);
+	mat4 mvp = mat4::proj_ortho(0.0, WIN_W, WIN_H, 0.0, -1.0, 1.0) * mat4::translate(300, 300, 0) * mat4::scale(100, 100, 100);
 	wave_shader->update_uniform_mat4("uMVP", mvp);
 
 //	glBindBuffer(GL_ARRAY_BUFFER, wave_VBOid);
 	//glVertexAttribPointer(ATTRIB_POSITION, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), 0);
 	glBindVertexArray(VAOid);	
-	glDrawArrays(GL_PATCHES, 0, 1);
+	glDrawArrays(GL_PATCHES, 0, 4);
 
 }
 
@@ -98,11 +101,11 @@ int init_GL() {
 		return 0;
 	}
 
-	glClearColor(1.0, 1.0, 1.0, 1.0);
-	glDisable(GL_DEPTH_TEST);
+	glClearColor(0.0, 0.0, 0.0, 1.0);
+	glEnable(GL_DEPTH_TEST);
 
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glEnable(GL_BLEND);
+	//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	//glEnable(GL_BLEND);
 
 	glViewport(0, 0, WIN_W, WIN_H);
 
@@ -125,20 +128,10 @@ int init_GL() {
 
 	std::unordered_map<GLuint, std::string> default_attrib_bindings;
 	ADD_ATTRIB(default_attrib_bindings, ATTRIB_POSITION, "Position_VS_in");
-	//ADD_ATTRIB(default_attrib_bindings, ATTRIB_NORMAL, "Normal_VS_in");
-	//ADD_ATTRIB(default_attrib_bindings, ATTRIB_TEXCOORD, "TexCoord_VS_in");
-
-
-	//gradient_texture = new Texture("textures/gradient.png", GL_LINEAR);	// solid_color_test.bmp
-
-	//if (!gradient_texture || gradient_texture->bad()) {
-	//	printf("Failure loading textures.\n");
-	//	return 0;
-	//}
 
 	wave_shader = new ShaderProgram("shaders/wave", default_attrib_bindings);
 
-	float patch_buffer[4 * 2] = { 0.0, 0.0, 0.2, 1.0, 0.8, 1.0, 1.0, 0.0 };
+	float patch_buffer[4 * 2] = { 0.0, 0.0, 1.0, 1.0, 10, 0.0, 7.0, 5 };
 
 	glGenVertexArrays(1, &VAOid);
 	glBindVertexArray(VAOid);
@@ -149,11 +142,11 @@ int init_GL() {
 	glBindBuffer(GL_ARRAY_BUFFER, wave_VBOid);
 	glBufferData(GL_ARRAY_BUFFER, 8*sizeof(float), patch_buffer, GL_DYNAMIC_DRAW);
 
-	glVertexAttribPointer(ATTRIB_POSITION, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), 0);
+	glVertexAttribPointer(ATTRIB_POSITION, 2, GL_FLOAT, GL_FALSE, 2*sizeof(float), 0);
 
 	glBindVertexArray(0);
 
-	glDisableVertexAttribArray(ATTRIB_POSITION);
+	//glDisableVertexAttribArray(ATTRIB_POSITION);
 
 	return 1;
 
@@ -186,7 +179,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 		break;
 
 	case WM_CLOSE:
-		//kill_GL_window();
+		kill_GL_window();
 		PostQuitMessage(0);
 		break;
 

@@ -41,6 +41,8 @@ typedef ptrdiff_t GLintptr;
 
 #define GL_FRAGMENT_SHADER                0x8B30
 #define GL_VERTEX_SHADER                  0x8B31
+#define GL_TESS_EVALUATION_SHADER         0x8E87
+#define GL_TESS_CONTROL_SHADER            0x8E88
 
 #define GL_FRAMEBUFFER_COMPLETE           0x8CD5
 #define GL_LINK_STATUS                    0x8B82

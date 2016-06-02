@@ -1,5 +1,3 @@
 ﻿  glwindow.cpp
-c:\users\elias\documents\visual studio 2015\projects\waveformedit\waveformedit\glwindow.cpp(141): warning C4838: conversion from 'double' to 'float' requires a narrowing conversion
-c:\users\elias\documents\visual studio 2015\projects\waveformedit\waveformedit\glwindow.cpp(141): warning C4305: 'initializing': truncation from 'double' to 'float'
-  waveformedit.vcxproj -> C:\Users\Elias\documents\visual studio 2015\Projects\waveformedit\Debug\waveformedit.exe
-  waveformedit.vcxproj -> C:\Users\Elias\documents\visual studio 2015\Projects\waveformedit\Debug\waveformedit.pdb (Partial PDB)
+  waveformedit.vcxproj -> C:\Users\Elias\Documents\Visual Studio 2015\Projects\wfedit\Debug\waveformedit.exe
+  waveformedit.vcxproj -> C:\Users\Elias\Documents\Visual Studio 2015\Projects\wfedit\Debug\waveformedit.pdb (Partial PDB)

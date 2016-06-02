@@ -40,14 +40,13 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	while (!done) {
 		while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE) > 0) {
 			if (msg.message == WM_QUIT) {
-				break;
+				return EXIT_SUCCESS;
 			}
 			else {
 				TranslateMessage(&msg);
 				DispatchMessage(&msg);
 			}
 
-			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 			draw();
 			swap_buffers();
 		}
