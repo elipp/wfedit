@@ -85,8 +85,9 @@ vec4 solve_equation_coefs(const float *points) {
 	const float& a = points[0];
 	const float& b = points[2];
 	const float& c = points[4];
+	const float& d = points[6];
 
-	mat4 m = mat4(vec4(a*a*a, a*a, a, 1), vec4(b*b*b, b*b, b, 1), vec4(c*c*c, c*c, c, 1), vec4(1, 1, 1, 1));
+	mat4 m = mat4(vec4(a*a*a, a*a, a, 1), vec4(b*b*b, b*b, b, 1), vec4(c*c*c, c*c, c, 1), vec4(d*d*d, d*d, d, 1));
 	m.invert();
 
 	vec4 correct = m.transposed() * vec4(points[1], points[3], points[5], points[7]);
@@ -147,10 +148,12 @@ vec4 solve_equation_coefs(const float *points) {
 	//return other;
 }
 
-void update_data() {
-	static float t = 0;
+static float GT = 0;
 
-	t += 0.001;
+
+void update_data() {
+
+	GT += 0.001;
 
 	//float patch_buffer[4 * 2] = { 2 * sin(t), 2 * cos(1.5*t - 0.5), 5 - sin(t), 3 - 3 * cos(2 * t), 8 - 4 * sin(t), 3 * sin(0.3*t), 5 * cos(0.8*t) + 3, 3 * sin(cos(t)) };
 
@@ -160,16 +163,17 @@ void update_data() {
 	
 	static auto rand_float = std::bind(std::uniform_real_distribution<float>(-1, 1), rng);
 
-	for (int i = 0; i < 1; ++i) {
+	for (int i = 0; i < 100; ++i) {
 
 		patch_buffer[8*i] = 0.0;
-		patch_buffer[8*i + 1] = rand_float();
+		patch_buffer[8*i + 1] = cos(0.3*i*GT);
 		patch_buffer[8*i + 2] = 0.33;
-		patch_buffer[8*i + 3] = rand_float();
+		patch_buffer[8*i + 3] = sin(0.8*i*GT);
 		patch_buffer[8*i + 4] = 0.66;
-		patch_buffer[8*i + 5] = rand_float();
+		patch_buffer[8*i + 5] = cos(0.7*i*GT);
 		patch_buffer[8*i + 6] = 1.0;
-		patch_buffer[8*i + 7] = rand_float();
+		//patch_buffer[8*i + 7] = rand_float();
+		patch_buffer[8 * i + 7] = sin(0.2*i*GT);
 
 		eq_coefs[i] = solve_equation_coefs(&patch_buffer[8*i]);
 	}
@@ -195,6 +199,7 @@ void draw() {
 	mat4 mvp = mat4::proj_ortho(0.0, 1.0, -1.0, 1.0, -1.0, 1.0);
 
 	wave_shader->update_uniform_mat4("uMVP", mvp);
+	wave_shader->update_uniform_1f("TIME", GT);
 
 	glBindVertexArray(wave_VAOid);	
 	glDrawArrays(GL_PATCHES, 0, 100);

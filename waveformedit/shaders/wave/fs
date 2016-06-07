@@ -1,7 +1,10 @@
 #version 400
 
+in vec4 pos;
 out vec4 frag_color;
 
+uniform float TIME;
+
 void main() {
-  frag_color = vec4(1.0, 1.0, 1.0, 1.0);
+  frag_color = vec4(sin(2*TIME) + 1, cos(2*TIME) + 1, cos(2*TIME), 1.0);
 }
