@@ -1,9 +1,8 @@
 #version 400
 
 #define M_PI 3.1415926535897932384626433832795
-#define TWO_PI_PER_3 = ((2.0/3.0) * M_PI)
 
-const float c[3] = float[3](0, 2.0943951023, 4.1887902048000);
+const float c[3] = float[3](0, (2.0/3.0)*M_PI, (4.0/3.0)*M_PI);
 
 layout (points) in;
 layout (triangle_strip, max_vertices=3) out;
@@ -15,7 +14,8 @@ void main() {
 	vec4 pos = gl_in[0].gl_Position;
 
 	for (int i = 0; i < 3; ++i) {
-		gl_Position = uMVP*vec4(pos.x + 0.3*cos(c[i]), pos.y + 0.3*sin(c[i]), 0.0, 1.0);
+		
+		gl_Position = uMVP*vec4(pos.x - 0.01*sin(c[i]) , pos.y - 0.026*cos(c[i]), 0.0, 1.0);
 
 		EmitVertex();
 	}

@@ -1,6 +1,8 @@
 #include "glwindow.h"
+#include "lin_alg.h"
 
 #include <cstdio>
+#include <iostream>
 
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
@@ -36,7 +38,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 	bool done = false;
 
-
 	while (!done) {
 		while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE) > 0) {
 			if (msg.message == WM_QUIT) {
@@ -46,10 +47,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 				TranslateMessage(&msg);
 				DispatchMessage(&msg);
 			}
-
-			draw();
-			swap_buffers();
 		}
+
+		draw();
+		swap_buffers();
 	}
 
 

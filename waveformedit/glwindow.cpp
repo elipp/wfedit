@@ -79,25 +79,68 @@ int generate_vertices(float *samples, size_t num_samples) {
 	return 0;
 }
 
+vec4 solve_equation_coefs(const float *points) {
+
+	float a, b;
+	a = points[2];
+	b = points[4];
+
+	mat4 m = mat4(vec4(0, 0, 0, 1), vec4(a*a*a, a*a, a, 1), vec4(b*b*b, b*b, b, 1), vec4(1, 1, 1, 1));
+	m.invert();
+
+	//printf("(%.3f, %.3f, %.3f, %.3f)\n(%.3f, %.3f, %.3f, %.3f)\n(%.3f, %.3f, %.3f, %.3f)\n(%.3f, %.3f, %.3f, %.3f)\n\n",
+	//	test(0, 0), test(0, 1), test(0, 2), test(0, 3),
+	//	test(1, 0), test(1, 1), test(1, 2), test(1, 3),
+	//	test(2, 0), test(2, 1), test(2, 2), test(2, 3),
+	//	test(3, 0), test(3, 1), test(3, 2), test(3, 3));
+
+	vec4 c = m.transposed() * vec4(points[1], points[3], points[5], points[7]);
+
+	return c;
+}
+
+void update_data() {
+	static float t = 0;
+
+	t += 0.001;
+
+	//float patch_buffer[4 * 2] = { 2 * sin(t), 2 * cos(1.5*t - 0.5), 5 - sin(t), 3 - 3 * cos(2 * t), 8 - 4 * sin(t), 3 * sin(0.3*t), 5 * cos(0.8*t) + 3, 3 * sin(cos(t)) };
+
+	float patch_buffer[8] = {
+		0.0, 0.0, 0.3, -0.7, 0.6, 1, 1, 0.5
+	};
+
+	vec4 eq_coefs = solve_equation_coefs(patch_buffer);
+
+	//printf("a = %f, b = %f, c = %f, d = %f\n", eq_coefs(0), eq_coefs(1), eq_coefs(2), eq_coefs(3));
+
+	glBindBuffer(GL_ARRAY_BUFFER, wave_VBOid);
+	glBufferSubData(GL_ARRAY_BUFFER, 0, 4*sizeof(float), eq_coefs.data.m128_f32);
+
+}
+
+
 void draw() {
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	glUseProgram(wave_shader->getProgramHandle());
 
-	mat4 mvp = mat4::proj_ortho(0.0, WIN_W, WIN_H, 0.0, -1.0, 1.0) * mat4::translate(300, 300, 0) * mat4::scale(100, 100, 100);
+	update_data();
+
+//	mat4 mvp = mat4::proj_ortho(0.0, WIN_W, WIN_H, 0.0, -1.0, 1.0) * mat4::translate(0.0, (WIN_H / 2), 0.0) * mat4::scale(WIN_W, WIN_H, 1.0);
+	mat4 mvp = mat4::proj_ortho(0.0, 1.0, -1.0, 1.0, -1.0, 1.0);
+
 	wave_shader->update_uniform_mat4("uMVP", mvp);
 
-//	glBindBuffer(GL_ARRAY_BUFFER, wave_VBOid);
-	//glVertexAttribPointer(ATTRIB_POSITION, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), 0);
 	glBindVertexArray(VAOid);	
-	glDrawArrays(GL_PATCHES, 0, 4);
+	glDrawArrays(GL_PATCHES, 0, 1);
 	
-	glUseProgram(point_shader->getProgramHandle());
+	//glUseProgram(point_shader->getProgramHandle());
 
-	point_shader->update_uniform_mat4("uMVP", mvp);
+	//point_shader->update_uniform_mat4("uMVP", mvp);
 
-	glDrawArrays(GL_POINTS, 0, 4);
+	//glDrawArrays(GL_POINTS, 0, 4);
 
 }
 
@@ -123,7 +166,7 @@ int init_GL() {
 	glGetIntegerv(GL_MAX_ELEMENTS_VERTICES, &max_elements_vertices);
 	glGetIntegerv(GL_MAX_ELEMENTS_INDICES, &max_elements_indices);
 
-	glPatchParameteri(GL_PATCH_VERTICES, 4);
+	glPatchParameteri(GL_PATCH_VERTICES, 1);
 
 	printf("GL_MAX_ELEMENTS_VERTICES = %d\nGL_MAX_ELEMENTS_INDICES = %d\n", max_elements_vertices, max_elements_indices);
 
@@ -138,7 +181,7 @@ int init_GL() {
 	wave_shader = new ShaderProgram("shaders/wave", default_attrib_bindings);
 	point_shader = new ShaderProgram("shaders/pointplot", default_attrib_bindings);
 
-	float patch_buffer[4 * 2] = { 0.0, 0.0, 1.0, 1.0, 5, 0.0, 7.0, 5 };
+	float patch_buffer[4] = { 0.0, 0.0, 0.0, 0.0 };
 
 	glGenVertexArrays(1, &VAOid);
 	glBindVertexArray(VAOid);
@@ -147,9 +190,9 @@ int init_GL() {
 
 	glGenBuffers(1, &wave_VBOid);
 	glBindBuffer(GL_ARRAY_BUFFER, wave_VBOid);
-	glBufferData(GL_ARRAY_BUFFER, 8*sizeof(float), patch_buffer, GL_DYNAMIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, 4*sizeof(float), patch_buffer, GL_DYNAMIC_DRAW);
 
-	glVertexAttribPointer(ATTRIB_POSITION, 2, GL_FLOAT, GL_FALSE, 2*sizeof(float), 0);
+	glVertexAttribPointer(ATTRIB_POSITION, 4, GL_FLOAT, GL_FALSE, 4*sizeof(float), 0);
 
 	glBindVertexArray(0);
 

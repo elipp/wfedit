@@ -1,7 +1,8 @@
 #version 400
 
-layout(location = 0) in vec2 Position_VS_in;
-out vec3 vPos;
+layout(location = 0) in vec4 Position_VS_in;
+out vec4 coefs_VS_out;
+
 void main() {
-    vPos = vec3(Position_VS_in, 0.0);
+    coefs_VS_out = Position_VS_in;
 }

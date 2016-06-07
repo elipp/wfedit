@@ -11,11 +11,16 @@ vec3 bezier4(vec3 a, vec3 b, vec3 c, vec3 d, float t) {
 }
 
 layout(isolines) in;
-in vec3 tcPos[];
+in vec4 coefs_TCS_out[];
 uniform mat4 uMVP;
 
+float y_val(float x) {
+	return (coefs_TCS_out[0].x * x*x*x + coefs_TCS_out[0].y * x*x + coefs_TCS_out[0].z * x);
+}
+
 void main() {
-    float t = gl_TessCoord.x;
-    vec3 ePos = bezier4(tcPos[0], tcPos[1], tcPos[2], tcPos[3], t);
-    gl_Position = uMVP * vec4(ePos, 1);
+    float X = gl_TessCoord.x;
+    //vec3 ePos = bezier4(tcPos[0], tcPos[1], tcPos[2], tcPos[3], t);
+	
+    gl_Position = uMVP * vec4(X, y_val(X), 0.0, 1);
 }

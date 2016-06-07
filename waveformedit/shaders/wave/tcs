@@ -1,12 +1,13 @@
 #version 400
 
-layout(vertices = 4) out; // 4 points per patch
-in vec3 vPos[];
-out vec3 tcPos[];
+layout(vertices = 1) out; 
+
+in vec4 coefs_VS_out[];
+
+out vec4 coefs_TCS_out[];
+
 void main() {
-    tcPos[gl_InvocationID] = vPos[gl_InvocationID];
-    if(gl_InvocationID == 0) { // levels only need to be set once per patch
-        gl_TessLevelOuter[0] = 2; // we're only tessellating one line
-        gl_TessLevelOuter[1] = 32; // tessellate the line into 100 segments
-    }
+	coefs_TCS_out[0] = coefs_VS_out[0];
+	gl_TessLevelOuter[0] = 1; // we're only tessellating one line
+	gl_TessLevelOuter[1] = 64; // tessellate the line into 100 segments
 }
