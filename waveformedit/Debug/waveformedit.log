@@ -1,6 +1,11 @@
 ﻿  glwindow.cpp
-c:\users\elias\documents\visual studio 2015\projects\wfedit\waveformedit\glwindow.cpp(105): warning C4305: '+=': truncation from 'double' to 'float'
-c:\users\elias\documents\visual studio 2015\projects\wfedit\waveformedit\glwindow.cpp(111): warning C4838: conversion from 'double' to 'float' requires a narrowing conversion
-c:\users\elias\documents\visual studio 2015\projects\wfedit\waveformedit\glwindow.cpp(111): warning C4305: 'initializing': truncation from 'double' to 'float'
+c:\users\elias\documents\visual studio 2015\projects\wfedit\waveformedit\glwindow.cpp(126): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
+c:\users\elias\documents\visual studio 2015\projects\wfedit\waveformedit\glwindow.cpp(127): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
+c:\users\elias\documents\visual studio 2015\projects\wfedit\waveformedit\glwindow.cpp(128): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
+c:\users\elias\documents\visual studio 2015\projects\wfedit\waveformedit\glwindow.cpp(129): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
+c:\users\elias\documents\visual studio 2015\projects\wfedit\waveformedit\glwindow.cpp(151): warning C4305: '+=': truncation from 'double' to 'float'
+c:\users\elias\documents\visual studio 2015\projects\wfedit\waveformedit\glwindow.cpp(156): warning C4244: 'argument': conversion from 'time_t' to 'unsigned int', possible loss of data
+c:\users\elias\documents\visual studio 2015\projects\wfedit\waveformedit\glwindow.cpp(165): warning C4305: '=': truncation from 'double' to 'float'
+c:\users\elias\documents\visual studio 2015\projects\wfedit\waveformedit\glwindow.cpp(167): warning C4305: '=': truncation from 'double' to 'float'
   waveformedit.vcxproj -> C:\Users\Elias\Documents\Visual Studio 2015\Projects\wfedit\Debug\waveformedit.exe
   waveformedit.vcxproj -> C:\Users\Elias\Documents\Visual Studio 2015\Projects\wfedit\Debug\waveformedit.pdb (Partial PDB)

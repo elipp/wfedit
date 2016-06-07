@@ -6,6 +6,7 @@
 #include <cmath>
 #include <vector>
 #include <string>
+#include <random>
 #include <stdarg.h>
 
 #include <cassert>
@@ -30,7 +31,7 @@ static HWND hWnd_child = NULL;
 unsigned WINDOW_WIDTH = 1280;
 unsigned WINDOW_HEIGHT = 960;
 
-static GLuint wave_VBOid, VAOid;
+static GLuint wave_VBOid, wave_VAOid;
 
 bool fullscreen = false;
 bool active = TRUE;
@@ -81,22 +82,69 @@ int generate_vertices(float *samples, size_t num_samples) {
 
 vec4 solve_equation_coefs(const float *points) {
 
-	float a, b;
-	a = points[2];
-	b = points[4];
+	const float& a = points[0];
+	const float& b = points[2];
+	const float& c = points[4];
 
-	mat4 m = mat4(vec4(0, 0, 0, 1), vec4(a*a*a, a*a, a, 1), vec4(b*b*b, b*b, b, 1), vec4(1, 1, 1, 1));
+	mat4 m = mat4(vec4(a*a*a, a*a, a, 1), vec4(b*b*b, b*b, b, 1), vec4(c*c*c, c*c, c, 1), vec4(1, 1, 1, 1));
 	m.invert();
 
-	//printf("(%.3f, %.3f, %.3f, %.3f)\n(%.3f, %.3f, %.3f, %.3f)\n(%.3f, %.3f, %.3f, %.3f)\n(%.3f, %.3f, %.3f, %.3f)\n\n",
-	//	test(0, 0), test(0, 1), test(0, 2), test(0, 3),
-	//	test(1, 0), test(1, 1), test(1, 2), test(1, 3),
-	//	test(2, 0), test(2, 1), test(2, 2), test(2, 3),
-	//	test(3, 0), test(3, 1), test(3, 2), test(3, 3));
+	vec4 correct = m.transposed() * vec4(points[1], points[3], points[5], points[7]);
 
-	vec4 c = m.transposed() * vec4(points[1], points[3], points[5], points[7]);
+	return correct;
 
-	return c;
+	//
+	////printf("(%.2f, %.2f, %.2f, %.2f)\n(%.2f, %.2f, %.2f, %.2f)\n(%.2f, %.2f, %.2f, %.2f)\n(%.2f, %.2f, %.2f, %.2f)\n",
+	////	m(0, 0), m(1, 0), m(2, 0), m(3, 0),
+	////	m(0, 1), m(1, 1), m(2, 1), m(3, 1),
+	////	m(0, 2), m(1, 2), m(2, 2), m(3, 2),
+	////	m(0, 3), m(1, 3), m(2, 3), m(3, 3));
+
+	////printf("correct coefs: (%.2f, %.2f, %.2f, %.2f)\n\n", correct(0), correct(1), correct(2), correct(3));
+
+	//static const vec4 minus_one(-1, -1, -1, -1);
+
+	//vec4 abc1(a, b, c, 1);
+	//vec4 abcm1 = abc1 + minus_one;
+
+	//float apb = a + b;
+	//float apc = a + c;
+	//float bpc = b + c;
+
+	//float amb = a - b;
+	//float amc = a - c;
+	//float bmc = b - c;
+	//float cmb = c - b;
+
+	//float ab = a*b;
+	//float ac = a*c;
+	//float bc = b*c;
+
+	//vec4 c1_numer(1, -(bpc + 1), bc + bpc, -bc);
+	//vec4 c2_numer(-1, apc + 1, -(ac + apc), ac);
+	//vec4 c3_numer(1, -(apb + 1), ab + apb, -ab);
+	//vec4 c4_numer(-1, apb + c, -(bc + a*bpc), ab*c);
+	//
+	//vec4 c1_denom(1.0/(abcm1(0) * amb * amc));
+	//vec4 c2_denom(1.0/(amb * abcm1(1) * bmc));
+	//vec4 c3_denom(1.0/(amc * bmc * abcm1(2)));
+	//vec4 c4_denom(1.0/(abcm1(0) * abcm1(1) *abcm1(2)));
+	//
+	//mat4 mi = mat4(componentwise_multiply(c1_numer, c1_denom),
+	//	componentwise_multiply(c2_numer, c2_denom),
+	//	componentwise_multiply(c3_numer, c3_denom),
+	//	componentwise_multiply(c4_numer, c4_denom));
+
+	//vec4 other = mi*vec4(points[1], points[3], points[5], points[7]);
+
+	////printf("(%.2f, %.2f, %.2f, %.2f)\n(%.2f, %.2f, %.2f, %.2f)\n(%.2f, %.2f, %.2f, %.2f)\n(%.2f, %.2f, %.2f, %.2f)\n",
+	////	mi(0, 0), mi(1, 0), mi(2, 0), mi(3, 0),
+	////	mi(0, 1), mi(1, 1), mi(2, 1), mi(3, 1),
+	////	mi(0, 2), mi(1, 2), mi(2, 2), mi(3, 2),
+	////	mi(0, 3), mi(1, 3), mi(2, 3), mi(3, 3));
+	////printf("calculated coefs: (%.2f, %.2f, %.2f, %.2f)\n\n", other(0), other(1), other(2), other(3));
+
+	//return other;
 }
 
 void update_data() {
@@ -106,16 +154,31 @@ void update_data() {
 
 	//float patch_buffer[4 * 2] = { 2 * sin(t), 2 * cos(1.5*t - 0.5), 5 - sin(t), 3 - 3 * cos(2 * t), 8 - 4 * sin(t), 3 * sin(0.3*t), 5 * cos(0.8*t) + 3, 3 * sin(cos(t)) };
 
-	float patch_buffer[8] = {
-		0.0, 0.0, 0.3, -0.7, 0.6, 1, 1, 0.5
-	};
+	static float patch_buffer[800];
+	static std::mt19937 rng(time(0));
+	static vec4 eq_coefs[100];
+	
+	static auto rand_float = std::bind(std::uniform_real_distribution<float>(-1, 1), rng);
 
-	vec4 eq_coefs = solve_equation_coefs(patch_buffer);
+	for (int i = 0; i < 1; ++i) {
+
+		patch_buffer[8*i] = 0.0;
+		patch_buffer[8*i + 1] = rand_float();
+		patch_buffer[8*i + 2] = 0.33;
+		patch_buffer[8*i + 3] = rand_float();
+		patch_buffer[8*i + 4] = 0.66;
+		patch_buffer[8*i + 5] = rand_float();
+		patch_buffer[8*i + 6] = 1.0;
+		patch_buffer[8*i + 7] = rand_float();
+
+		eq_coefs[i] = solve_equation_coefs(&patch_buffer[8*i]);
+	}
+
 
 	//printf("a = %f, b = %f, c = %f, d = %f\n", eq_coefs(0), eq_coefs(1), eq_coefs(2), eq_coefs(3));
 
 	glBindBuffer(GL_ARRAY_BUFFER, wave_VBOid);
-	glBufferSubData(GL_ARRAY_BUFFER, 0, 4*sizeof(float), eq_coefs.data.m128_f32);
+	glBufferSubData(GL_ARRAY_BUFFER, 0, 100*4*sizeof(float), eq_coefs);
 
 }
 
@@ -133,8 +196,8 @@ void draw() {
 
 	wave_shader->update_uniform_mat4("uMVP", mvp);
 
-	glBindVertexArray(VAOid);	
-	glDrawArrays(GL_PATCHES, 0, 1);
+	glBindVertexArray(wave_VAOid);	
+	glDrawArrays(GL_PATCHES, 0, 100);
 	
 	//glUseProgram(point_shader->getProgramHandle());
 
@@ -181,16 +244,14 @@ int init_GL() {
 	wave_shader = new ShaderProgram("shaders/wave", default_attrib_bindings);
 	point_shader = new ShaderProgram("shaders/pointplot", default_attrib_bindings);
 
-	float patch_buffer[4] = { 0.0, 0.0, 0.0, 0.0 };
-
-	glGenVertexArrays(1, &VAOid);
-	glBindVertexArray(VAOid);
+	glGenVertexArrays(1, &wave_VAOid);
+	glBindVertexArray(wave_VAOid);
 
 	glEnableVertexAttribArray(ATTRIB_POSITION);
 
 	glGenBuffers(1, &wave_VBOid);
 	glBindBuffer(GL_ARRAY_BUFFER, wave_VBOid);
-	glBufferData(GL_ARRAY_BUFFER, 4*sizeof(float), patch_buffer, GL_DYNAMIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, 100*4*sizeof(float), NULL, GL_DYNAMIC_DRAW);
 
 	glVertexAttribPointer(ATTRIB_POSITION, 4, GL_FLOAT, GL_FALSE, 4*sizeof(float), 0);
 
