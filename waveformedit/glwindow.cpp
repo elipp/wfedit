@@ -166,11 +166,11 @@ void update_data() {
 	for (int i = 0; i < 100; ++i) {
 
 		patch_buffer[8*i] = 0.0;
-		patch_buffer[8*i + 1] = cos(0.3*i*GT);
+		patch_buffer[8*i + 1] = cos(0.1*i*GT);
 		patch_buffer[8*i + 2] = 0.33;
-		patch_buffer[8*i + 3] = sin(0.8*i*GT);
+		patch_buffer[8*i + 3] = sin(0.2*i*GT);
 		patch_buffer[8*i + 4] = 0.66;
-		patch_buffer[8*i + 5] = cos(0.7*i*GT);
+		patch_buffer[8*i + 5] = cos(0.11*i*GT);
 		patch_buffer[8*i + 6] = 1.0;
 		//patch_buffer[8*i + 7] = rand_float();
 		patch_buffer[8 * i + 7] = sin(0.2*i*GT);
@@ -223,6 +223,8 @@ int init_GL() {
 
 	//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	//glEnable(GL_BLEND);
+
+	wglSwapIntervalEXT(1);
 
 	glViewport(0, 0, WIN_W, WIN_H);
 

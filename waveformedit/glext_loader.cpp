@@ -46,6 +46,9 @@ PFNGLGENVERTEXARRAYSPROC glGenVertexArrays;
 PFNGLBINDVERTEXARRAYPROC glBindVertexArray;
 PFNGLDISABLEVERTEXATTRIBARRAYPROC glDisableVertexAttribArray;
 
+PFNWGLSWAPINTERVALEXTPROC wglSwapIntervalEXT;
+
+
 int load_GL_extensions() {
 
 	glGetShaderiv = (PFNGLGETSHADERIVPROC)wglGetProcAddress("glGetShaderiv");
@@ -168,6 +171,8 @@ int load_GL_extensions() {
 	glDisableVertexAttribArray = (PFNGLDISABLEVERTEXATTRIBARRAYPROC)wglGetProcAddress("glDisableVertexAttribArray");
 	assert(glDisableVertexAttribArray);
 
+	wglSwapIntervalEXT = (PFNWGLSWAPINTERVALEXTPROC)wglGetProcAddress("wglSwapIntervalEXT");
+	assert(wglSwapIntervalEXT);
 
 	return 1;
 }

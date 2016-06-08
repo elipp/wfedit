@@ -5,5 +5,7 @@ c:\users\elias\documents\visual studio 2015\projects\wfedit\waveformedit\glwindo
 c:\users\elias\documents\visual studio 2015\projects\wfedit\waveformedit\glwindow.cpp(170): warning C4305: '=': truncation from 'double' to 'float'
 c:\users\elias\documents\visual studio 2015\projects\wfedit\waveformedit\glwindow.cpp(171): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
 c:\users\elias\documents\visual studio 2015\projects\wfedit\waveformedit\glwindow.cpp(172): warning C4305: '=': truncation from 'double' to 'float'
+c:\users\elias\documents\visual studio 2015\projects\wfedit\waveformedit\glwindow.cpp(173): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+c:\users\elias\documents\visual studio 2015\projects\wfedit\waveformedit\glwindow.cpp(176): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
   waveformedit.vcxproj -> C:\Users\Elias\Documents\Visual Studio 2015\Projects\wfedit\Debug\waveformedit.exe
   waveformedit.vcxproj -> C:\Users\Elias\Documents\Visual Studio 2015\Projects\wfedit\Debug\waveformedit.pdb (Partial PDB)

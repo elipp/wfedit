@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Windows.h>
+#include <wingdi.h>
 #include <gl\gl.h>
 
 #ifndef APIENTRY
@@ -10,6 +11,7 @@
 #ifndef APIENTRYP
 #define APIENTRYP APIENTRY *
 #endif
+
 typedef char GLchar;
 typedef unsigned int GLhandleARB; // this is the #else bracnh of "#ifdef __APPLE__"
 
@@ -53,6 +55,9 @@ typedef ptrdiff_t GLintptr;
 #define GL_ACTIVE_UNIFORM_MAX_LENGTH      0x8B87
 
 #define GL_SHADING_LANGUAGE_VERSION       0x8B8C
+
+typedef bool (APIENTRYP PFNWGLSWAPINTERVALEXTPROC) (int interval);
+extern PFNWGLSWAPINTERVALEXTPROC wglSwapIntervalEXT;
 
 typedef void (APIENTRYP PFNGLGETSHADERIVPROC) (GLuint shader, GLenum pname, GLint *params);
 extern PFNGLGETSHADERIVPROC glGetShaderiv;
