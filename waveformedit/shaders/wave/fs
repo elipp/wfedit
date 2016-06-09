@@ -1,10 +1,16 @@
 #version 400
 
-in vec4 pos;
+in float dydx;
 out vec4 frag_color;
 
 uniform float TIME;
 
+
+
 void main() {
-  frag_color = vec4(sin(2*TIME) + 1, cos(2*TIME) + 1, cos(2*TIME), 1.0);
+  frag_color = vec4(
+  fract(0.5*sin(dydx+0.2*TIME)),
+  fract(cos(dydx + 0.2*TIME)),
+  fract(pow(dydx, -0.005*TIME)),
+  1.0);
 }

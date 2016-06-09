@@ -18,12 +18,15 @@ float y_val(float x) {
 	return (coefs_TCS_out[0].x * x*x*x + coefs_TCS_out[0].y * x*x + coefs_TCS_out[0].z * x);
 }
 
-out vec4 pos;
+out float dydx;
+
+const float dx = float(0.015625);
 
 void main() {
     float X = gl_TessCoord.x;
     //vec3 ePos = bezier4(tcPos[0], tcPos[1], tcPos[2], tcPos[3], t);
+    float Y = y_val(X);
 	
-    gl_Position = uMVP * vec4(X, 0.5*y_val(X), 0.0, 1);
-    pos = gl_Position;
+    gl_Position = uMVP * vec4(X, 0.5*Y, 0.0, 1);
+    dydx = (Y - y_val(X-dx))/dx;
 }

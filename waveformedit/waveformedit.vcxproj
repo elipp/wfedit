@@ -133,6 +133,7 @@
     <ClCompile Include="glwindow.cpp" />
     <ClCompile Include="lodepng.cpp" />
     <ClCompile Include="shader.cpp" />
+    <ClCompile Include="sound.cpp" />
     <ClCompile Include="texture.cpp" />
     <ClCompile Include="wfedit.cpp" />
   </ItemGroup>
@@ -142,6 +143,7 @@
     <ClInclude Include="lodepng.h" />
     <ClInclude Include="precalculated_texcoords.h" />
     <ClInclude Include="shader.h" />
+    <ClInclude Include="sound.h" />
     <ClInclude Include="texture.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

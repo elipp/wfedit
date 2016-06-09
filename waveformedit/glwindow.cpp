@@ -43,6 +43,8 @@ static bool _main_loop_running = true;
 bool main_loop_running() { return _main_loop_running; }
 void stop_main_loop() { _main_loop_running = false; }
 
+#define NUM_CURVES 8096
+
 void kill_GL_window();
 
 void set_cursor_relative_pos(int x, int y) {
@@ -155,34 +157,27 @@ void update_data() {
 
 	GT += 0.001;
 
-	//float patch_buffer[4 * 2] = { 2 * sin(t), 2 * cos(1.5*t - 0.5), 5 - sin(t), 3 - 3 * cos(2 * t), 8 - 4 * sin(t), 3 * sin(0.3*t), 5 * cos(0.8*t) + 3, 3 * sin(cos(t)) };
+	static float patch_buffer[NUM_CURVES];
+	//static std::mt19937 rng(time(0));
+	//static vec4 eq_coefs[100];
+	//
+	//static auto rand_float = std::bind(std::uniform_real_distribution<float>(-1, 1), rng);
 
-	static float patch_buffer[800];
-	static std::mt19937 rng(time(0));
-	static vec4 eq_coefs[100];
-	
-	static auto rand_float = std::bind(std::uniform_real_distribution<float>(-1, 1), rng);
-
-	for (int i = 0; i < 100; ++i) {
-
-		patch_buffer[8*i] = 0.0;
-		patch_buffer[8*i + 1] = cos(0.1*i*GT);
-		patch_buffer[8*i + 2] = 0.33;
-		patch_buffer[8*i + 3] = sin(0.2*i*GT);
-		patch_buffer[8*i + 4] = 0.66;
-		patch_buffer[8*i + 5] = cos(0.11*i*GT);
-		patch_buffer[8*i + 6] = 1.0;
-		//patch_buffer[8*i + 7] = rand_float();
-		patch_buffer[8 * i + 7] = sin(0.2*i*GT);
-
-		eq_coefs[i] = solve_equation_coefs(&patch_buffer[8*i]);
+	for (int i = 0; i < NUM_CURVES; ++i) {
+		patch_buffer[i] = (float)i / (float)NUM_CURVES;
 	}
 
+
+	mat4 m = mat4(vec4(0, 0, 0, 1), vec4((0.33*0.33*0.33), (0.33*0.33), 0.33, 1), vec4((0.66*0.66*0.66), (0.66*0.66), 0.66, 1), vec4(1, 1, 1, 1));
+	m.invert();
+
+	glUseProgram(wave_shader->getProgramHandle());
+	wave_shader->update_uniform_mat4("coefs_inv", m);
 
 	//printf("a = %f, b = %f, c = %f, d = %f\n", eq_coefs(0), eq_coefs(1), eq_coefs(2), eq_coefs(3));
 
 	glBindBuffer(GL_ARRAY_BUFFER, wave_VBOid);
-	glBufferSubData(GL_ARRAY_BUFFER, 0, 100*4*sizeof(float), eq_coefs);
+	glBufferSubData(GL_ARRAY_BUFFER, 0, NUM_CURVES*sizeof(float), patch_buffer);
 
 }
 
@@ -193,16 +188,17 @@ void draw() {
 
 	glUseProgram(wave_shader->getProgramHandle());
 
-	update_data();
-
 //	mat4 mvp = mat4::proj_ortho(0.0, WIN_W, WIN_H, 0.0, -1.0, 1.0) * mat4::translate(0.0, (WIN_H / 2), 0.0) * mat4::scale(WIN_W, WIN_H, 1.0);
 	mat4 mvp = mat4::proj_ortho(0.0, 1.0, -1.0, 1.0, -1.0, 1.0);
 
 	wave_shader->update_uniform_mat4("uMVP", mvp);
+	
+	GT += 0.006;
+	
 	wave_shader->update_uniform_1f("TIME", GT);
 
 	glBindVertexArray(wave_VAOid);	
-	glDrawArrays(GL_PATCHES, 0, 100);
+	glDrawArrays(GL_PATCHES, 0, NUM_CURVES);
 	
 	//glUseProgram(point_shader->getProgramHandle());
 
@@ -258,13 +254,15 @@ int init_GL() {
 
 	glGenBuffers(1, &wave_VBOid);
 	glBindBuffer(GL_ARRAY_BUFFER, wave_VBOid);
-	glBufferData(GL_ARRAY_BUFFER, 100*4*sizeof(float), NULL, GL_DYNAMIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, NUM_CURVES*sizeof(float), NULL, GL_DYNAMIC_DRAW);
 
-	glVertexAttribPointer(ATTRIB_POSITION, 4, GL_FLOAT, GL_FALSE, 4*sizeof(float), 0);
+	glVertexAttribPointer(ATTRIB_POSITION, 1, GL_FLOAT, GL_FALSE, 1*sizeof(float), 0);
 
 	glBindVertexArray(0);
 
 	//glDisableVertexAttribArray(ATTRIB_POSITION);
+
+	update_data();
 
 	return 1;
 

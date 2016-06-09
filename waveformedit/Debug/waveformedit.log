@@ -1,11 +1,6 @@
 ﻿  glwindow.cpp
-c:\users\elias\documents\visual studio 2015\projects\wfedit\waveformedit\glwindow.cpp(156): warning C4305: '+=': truncation from 'double' to 'float'
-c:\users\elias\documents\visual studio 2015\projects\wfedit\waveformedit\glwindow.cpp(161): warning C4244: 'argument': conversion from 'time_t' to 'unsigned int', possible loss of data
-c:\users\elias\documents\visual studio 2015\projects\wfedit\waveformedit\glwindow.cpp(169): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
-c:\users\elias\documents\visual studio 2015\projects\wfedit\waveformedit\glwindow.cpp(170): warning C4305: '=': truncation from 'double' to 'float'
-c:\users\elias\documents\visual studio 2015\projects\wfedit\waveformedit\glwindow.cpp(171): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
-c:\users\elias\documents\visual studio 2015\projects\wfedit\waveformedit\glwindow.cpp(172): warning C4305: '=': truncation from 'double' to 'float'
-c:\users\elias\documents\visual studio 2015\projects\wfedit\waveformedit\glwindow.cpp(173): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
-c:\users\elias\documents\visual studio 2015\projects\wfedit\waveformedit\glwindow.cpp(176): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+c:\users\elias\documents\visual studio 2015\projects\wfedit\waveformedit\glwindow.cpp(158): warning C4305: '+=': truncation from 'double' to 'float'
+c:\users\elias\documents\visual studio 2015\projects\wfedit\waveformedit\glwindow.cpp(171): warning C4305: 'argument': truncation from 'double' to 'float'
+c:\users\elias\documents\visual studio 2015\projects\wfedit\waveformedit\glwindow.cpp(196): warning C4305: '+=': truncation from 'double' to 'float'
   waveformedit.vcxproj -> C:\Users\Elias\Documents\Visual Studio 2015\Projects\wfedit\Debug\waveformedit.exe
   waveformedit.vcxproj -> C:\Users\Elias\Documents\Visual Studio 2015\Projects\wfedit\Debug\waveformedit.pdb (Partial PDB)

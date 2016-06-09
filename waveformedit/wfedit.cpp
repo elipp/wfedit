@@ -1,5 +1,6 @@
 #include "glwindow.h"
 #include "lin_alg.h"
+#include "sound.h"
 
 #include <cstdio>
 #include <iostream>
@@ -37,6 +38,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	}
 
 	bool done = false;
+
+	PlayAudioStream();
 
 	while (!done) {
 		while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE) > 0) {

@@ -1,8 +1,39 @@
 #version 400
 
-layout(location = 0) in vec4 Position_VS_in;
+#define TWO_PI (6.28318531)
+
+layout(location = 0) in float Position_VS_in;
 out vec4 coefs_VS_out;
 
+uniform float TIME;
+
+uniform mat4 coefs_inv;
+
+vec4 get_coefs() {
+//	float a = 0.0;
+//	float b = 0.33;
+//	float c = 0.66;
+//	float d = 1.0;
+//
+//	mat4 m = inverse(mat4(vec4(a*a*a, a*a, a, 1),
+//		vec4(b*b*b, b*b, b, 1),
+//		vec4(c*c*c, c*c, c, 1),
+//		vec4(1, 1, 1, 1)));
+//	
+	float i = Position_VS_in;
+
+	vec4 ys = vec4(
+	sin(600*i - TIME), 
+	cos(0.5*i + TIME), 
+	sin(13*i + i*TIME), 
+	cos(6.1*i + TIME));
+
+	vec4 coefs = ys*coefs_inv;
+
+	return coefs;
+ 
+}
+
 void main() {
-    coefs_VS_out = Position_VS_in;
+    coefs_VS_out = get_coefs();
 }
