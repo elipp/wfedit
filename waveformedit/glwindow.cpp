@@ -43,7 +43,7 @@ static bool _main_loop_running = true;
 bool main_loop_running() { return _main_loop_running; }
 void stop_main_loop() { _main_loop_running = false; }
 
-#define NUM_CURVES 8096
+#define NUM_CURVES 64
 
 void kill_GL_window();
 
