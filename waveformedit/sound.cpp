@@ -48,7 +48,7 @@ static HRESULT find_smallest_128_aligned(IMMDevice *pDevice, IAudioClient *pAudi
 
 	printf("MinimumDevicePeriod: %lld, DefaultDevicePeriod: %lld\n", MinimumDevicePeriod, DefaultDevicePeriod);
 
-	int n = 256; 
+	int n = 128; 
 
 	while (n < 16384) {
 		
@@ -99,6 +99,9 @@ HRESULT PlayAudioStream() {
 
 	WAVEFORMATEX wave_format = {};
 
+	hr = CoInitialize(NULL);
+	IF_ERROR_EXIT(hr);
+
 	hr = CoCreateInstance(CLSID_MMDeviceEnumerator, NULL, CLSCTX_ALL, IID_IMMDeviceEnumerator, (void**)&pEnumerator);
 	IF_ERROR_EXIT(hr);
 
@@ -111,8 +114,8 @@ HRESULT PlayAudioStream() {
 
 	wave_format.wFormatTag = WAVE_FORMAT_PCM;
 	wave_format.nChannels = 2;
-	wave_format.nSamplesPerSec = 48000;
-	wave_format.nAvgBytesPerSec = 48000 * 2 * 16 / 8;
+	wave_format.nSamplesPerSec = 96000;
+	wave_format.nAvgBytesPerSec = 96000 * 2 * 16 / 8;
 	wave_format.nBlockAlign = 2 * 16 / 8;
 	wave_format.wBitsPerSample = 16;
 

@@ -5,9 +5,12 @@
 #include <cstdio>
 #include <iostream>
 
+DWORD WINAPI sound_thread_proc(LPVOID lpParam) {
+	return (DWORD)PlayAudioStream();
+}
 
-int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
-{
+
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
 
 #define ENABLE_CONSOLE
 
@@ -26,7 +29,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	long wait = 0;
 	static double time_per_frame_ms = 0;
 
-	static float running = 0;
 	MSG msg;
 	
 	if (!create_GL_window("WFEDIT", WIN_W, WIN_H)) {
@@ -37,14 +39,17 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		return EXIT_FAILURE;
 	}
 
-	bool done = false;
+	bool running = true;
 
-	PlayAudioStream();
+	DWORD sound_threadID;
 
-	while (!done) {
+	CreateThread(NULL, 0, sound_thread_proc, NULL, 0, &sound_threadID);
+
+	while (running) {
 		while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE) > 0) {
 			if (msg.message == WM_QUIT) {
-				return EXIT_SUCCESS;
+				running = false;
+				break;
 			}
 			else {
 				TranslateMessage(&msg);

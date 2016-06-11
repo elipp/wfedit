@@ -122,7 +122,6 @@ ShaderProgram::ShaderProgram(const std::string &name_base, const std::unordered_
 	}
 
 	
-
 	#define my_delete_arr(arr) if(arr) delete [] arr; arr = NULL;
 
 	construct_uniform_map();
@@ -258,6 +257,7 @@ GLint ShaderProgram::checkProgramLinkStatus() {
 
 void ShaderProgram::construct_uniform_map() {
 	GLint total = -1;
+	glUseProgram(this->programHandle);
 	glGetProgramiv(programHandle, GL_ACTIVE_UNIFORMS, &total);
 #define UNIFORM_NAME_LEN_MAX 64
 	char uniform_name_buf[UNIFORM_NAME_LEN_MAX];
