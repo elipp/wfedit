@@ -48,17 +48,17 @@ static HRESULT find_smallest_128_aligned(IMMDevice *pDevice, IAudioClient *pAudi
 
 	printf("MinimumDevicePeriod: %lld, DefaultDevicePeriod: %lld\n", MinimumDevicePeriod, DefaultDevicePeriod);
 
-	int n = 128; 
+	int n = 256; 
 
-	while (n < 4096) {
+	while (n < 16384) {
 		
-		REFERENCE_TIME hnsPeriod = (REFERENCE_TIME)(REFTIMES_PER_SEC * n / wave_format->nSamplesPerSec + 0.5);
+		REFERENCE_TIME hnsPeriod = (REFERENCE_TIME)((float)REFTIMES_PER_SEC * (float)n / (float)wave_format->nSamplesPerSec + 0.5);
 
 		hr = pAudioClient->Initialize(AUDCLNT_SHAREMODE_EXCLUSIVE, AUDCLNT_STREAMFLAGS_EVENTCALLBACK, hnsPeriod, hnsPeriod, wave_format, NULL);
 
 		if (FAILED(hr)) {
 			if (hr == AUDCLNT_E_INVALID_DEVICE_PERIOD) {
-				printf("IAudioClient::Initialize() returned AUDCLNT_E_INVALID_DEVICE_PERIOD for n = %d, trying again...\n", n);
+				printf("IAudioClient::Initialize() returned AUDCLNT_E_INVALID_DEVICE_PERIOD for n = %d (-> %lld), trying again...\n", n, hnsPeriod);
 				hr = pAudioClient->Release(); // release so we can initialize() again
 				if (FAILED(hr)) return hr;
 
@@ -71,11 +71,11 @@ static HRESULT find_smallest_128_aligned(IMMDevice *pDevice, IAudioClient *pAudi
 			}
 		}
 		else {
-			printf("IAudioClient::Initialize(): success with n = %d (period = %.2f ms)\n", n, hnsPeriod / 10000.0);
+			printf("IAudioClient::Initialize(): success with n = %d (period = %lld === %.4f ms)\n", n, hnsPeriod, (float)hnsPeriod / 10000.0);
 			return hr;
 		}
 	
-		n += 128;
+		n += 32;
 
 	}
 
