@@ -9,14 +9,6 @@
 #include <limits>
 #include <Avrt.h>
 
-//-----------------------------------------------------------
-// Play an audio stream on the default audio rendering
-// device. The PlayAudioStream function allocates a shared
-// buffer big enough to hold one second of PCM audio data.
-// The function uses this buffer to stream data to the
-// rendering device. The inner loop runs every 1/2 second.
-//-----------------------------------------------------------
-
 // REFERENCE_TIME time units per second and per millisecond
 #define REFTIMES_PER_SEC  10000000
 #define REFTIMES_PER_MILLISEC  10000
@@ -24,7 +16,7 @@
 #define IF_ERROR_EXIT(hr) do {\
 		if (FAILED(hr)){\
 			printf("sound.cpp:%d: WASAPI code error %lX\n", __LINE__, hr);\
-			return -1;\
+			goto exit_err;\
 		}\
 } while(0)
 
@@ -37,104 +29,116 @@ const IID IID_IMMDeviceEnumerator = __uuidof(IMMDeviceEnumerator);
 const IID IID_IAudioClient = __uuidof(IAudioClient);
 const IID IID_IAudioRenderClient = __uuidof(IAudioRenderClient);
 
+#define TWO_PI (3.14159265359*2)
+
 static inline float sin01(float alpha) {
 	return 0.5*sin(alpha) + 0.5;
 }
 
-static inline float sin_minmax_Hz(float min, float max, float Hz, float t) {
-	return (max - min) / 2.0 * sin01(t * Hz * 6.28318531);
+static inline float sin_minmax_Hz(float min, float max, float freq_Hz, float t) {
+	return (max - min) / 2.0 * sin01(t * freq_Hz * TWO_PI);
+}
+
+static HRESULT find_smallest_128_aligned(IMMDevice *pDevice, IAudioClient *pAudioClient, const WAVEFORMATEX *wave_format) {
+
+	REFERENCE_TIME DefaultDevicePeriod = 0, MinimumDevicePeriod = 0;
+	HRESULT hr = pAudioClient->GetDevicePeriod(&DefaultDevicePeriod, &MinimumDevicePeriod);
+
+	if (FAILED(hr)) return hr;
+
+	printf("MinimumDevicePeriod: %lld, DefaultDevicePeriod: %lld\n", MinimumDevicePeriod, DefaultDevicePeriod);
+
+	int n = 128; 
+
+	while (n < 4096) {
+		
+		REFERENCE_TIME hnsPeriod = (REFERENCE_TIME)(REFTIMES_PER_SEC * n / wave_format->nSamplesPerSec + 0.5);
+
+		hr = pAudioClient->Initialize(AUDCLNT_SHAREMODE_EXCLUSIVE, AUDCLNT_STREAMFLAGS_EVENTCALLBACK, hnsPeriod, hnsPeriod, wave_format, NULL);
+
+		if (FAILED(hr)) {
+			if (hr == AUDCLNT_E_INVALID_DEVICE_PERIOD) {
+				printf("IAudioClient::Initialize() returned AUDCLNT_E_INVALID_DEVICE_PERIOD for n = %d, trying again...\n", n);
+				hr = pAudioClient->Release(); // release so we can initialize() again
+				if (FAILED(hr)) return hr;
+
+				hr = pDevice->Activate(__uuidof(IAudioClient), CLSCTX_ALL, NULL, (void**)&pAudioClient);
+				if (FAILED(hr)) return hr;
+				
+			}
+			else {
+				return hr;
+			}
+		}
+		else {
+			printf("IAudioClient::Initialize(): success with n = %d (period = %.2f ms)\n", n, hnsPeriod / 10000.0);
+			return hr;
+		}
+	
+		n += 128;
+
+	}
+
+	return AUDCLNT_E_INVALID_DEVICE_PERIOD; // this is bad.. but w/e
 }
 
 HRESULT PlayAudioStream() {
 
 	HRESULT hr;
 	REFERENCE_TIME hnsRequestedDuration = REFTIMES_PER_SEC;
-	REFERENCE_TIME hnsActualDuration;
 	IMMDeviceEnumerator *pEnumerator = NULL;
 	IMMDevice *pDevice = NULL;
 	IAudioClient *pAudioClient = NULL;
 	IAudioRenderClient *pRenderClient = NULL;
+	UINT32 bufferFrameCount = 0;
 	WAVEFORMATEX *pwfx = NULL;
-	UINT32 bufferFrameCount;
-	UINT32 numFramesAvailable;
-	UINT32 numFramesPadding;
-	BYTE *pData;
+	BYTE *pData = NULL;
 	DWORD flags = 0;
-	HANDLE hEvent;
+	HANDLE hEvent = NULL;
 	HANDLE hTask = NULL;
 
-
-	hr = CoCreateInstance(
-		CLSID_MMDeviceEnumerator, NULL,
-		CLSCTX_ALL, IID_IMMDeviceEnumerator,
-		(void**)&pEnumerator);
-
-	hr = pEnumerator->GetDefaultAudioEndpoint(
-		eRender, eConsole, &pDevice);
-	IF_ERROR_EXIT(hr);
-
-	hr = pDevice->Activate(
-		IID_IAudioClient, CLSCTX_ALL,
-		NULL, (void**)&pAudioClient);
-	IF_ERROR_EXIT(hr);
-
-	hr = pAudioClient->GetMixFormat(&pwfx);
-	WAVEFORMATEXTENSIBLE* w = (WAVEFORMATEXTENSIBLE*)pwfx;
-
-	IF_ERROR_EXIT(hr);
-
-	REFERENCE_TIME DefaultDevicePeriod = 0;
-	REFERENCE_TIME MinimumDevicePeriod = 0;
-	hr = pAudioClient->GetDevicePeriod(&DefaultDevicePeriod, &MinimumDevicePeriod);
-	
-	IF_ERROR_EXIT(hr);
-
 	WAVEFORMATEX wave_format = {};
+
+	hr = CoCreateInstance(CLSID_MMDeviceEnumerator, NULL, CLSCTX_ALL, IID_IMMDeviceEnumerator, (void**)&pEnumerator);
+	IF_ERROR_EXIT(hr);
+
+	hr = pEnumerator->GetDefaultAudioEndpoint(eRender, eConsole, &pDevice);
+	IF_ERROR_EXIT(hr);
+
+	hr = pDevice->Activate(IID_IAudioClient, CLSCTX_ALL, NULL, (void**)&pAudioClient);
+	IF_ERROR_EXIT(hr);
+
+
 	wave_format.wFormatTag = WAVE_FORMAT_PCM;
 	wave_format.nChannels = 2;
-	wave_format.nSamplesPerSec = 44100;
-	wave_format.nAvgBytesPerSec = 44100 * 2 * 16 / 8;
+	wave_format.nSamplesPerSec = 48000;
+	wave_format.nAvgBytesPerSec = 48000 * 2 * 16 / 8;
 	wave_format.nBlockAlign = 2 * 16 / 8;
 	wave_format.wBitsPerSample = 16;
 
-	hr = pAudioClient->IsFormatSupported(
-		AUDCLNT_SHAREMODE_EXCLUSIVE,
-		&wave_format,
-		NULL // can't suggest a "closest match" in exclusive mode
-		);
+	hr = pAudioClient->IsFormatSupported(AUDCLNT_SHAREMODE_EXCLUSIVE, &wave_format, NULL);
+
 	if (AUDCLNT_E_UNSUPPORTED_FORMAT == hr) {
-		printf("WASAPI: default audio device does not support the requested WAVEFORMATEX (44100/2ch/16bit, aka CD)\n");
+		printf("WASAPI: default audio device does not support the requested WAVEFORMATEX (%d/%dch/%d bit)\n", wave_format.nSamplesPerSec, wave_format.nChannels, wave_format.wBitsPerSample);
 		pAudioClient->Release();
 		return hr;
 	}
+	IF_ERROR_EXIT(hr);
+
+	hr = find_smallest_128_aligned(pDevice, pAudioClient, &wave_format);
+	IF_ERROR_EXIT(hr);
 	
-	IF_ERROR_EXIT(hr);
-
-	hr = pAudioClient->Initialize(
-		AUDCLNT_SHAREMODE_EXCLUSIVE,
-		AUDCLNT_STREAMFLAGS_EVENTCALLBACK,
-		DefaultDevicePeriod,
-		DefaultDevicePeriod,
-		&wave_format,
-		NULL);
-	IF_ERROR_EXIT(hr);
-
-
-	// Get the actual size of the allocated buffer.
 	hr = pAudioClient->GetBufferSize(&bufferFrameCount);
+	IF_ERROR_EXIT(hr);
 
 	INT32 FrameSize_bytes = bufferFrameCount * wave_format.nChannels * wave_format.wBitsPerSample / 8;
 
-	IF_ERROR_EXIT(hr);
-
-	hr = pAudioClient->GetService(
-		IID_IAudioRenderClient,
-		(void**)&pRenderClient);
+	hr = pAudioClient->GetService(IID_IAudioRenderClient, (void**)&pRenderClient);
 	IF_ERROR_EXIT(hr);
 
 	hEvent = CreateEvent(nullptr, false, false, nullptr);
 	if (hEvent == INVALID_HANDLE_VALUE) { printf("CreateEvent failed\n");  return -1; }
-
+	
 	hr = pAudioClient->SetEventHandle(hEvent);
 	IF_ERROR_EXIT(hr);
 
@@ -142,15 +146,18 @@ HRESULT PlayAudioStream() {
 
 	unsigned short *samples = new unsigned short[num_samples];
 
+	float min = (float)(std::numeric_limits<unsigned short>::min)();
 	float max = (float)(std::numeric_limits<unsigned short>::max)();
 	float halfmax = max / 2.0;
-	float sample_rate_recip = 1.0 / (float)wave_format.nSamplesPerSec;
+	float dt = 1.0 / (float)wave_format.nSamplesPerSec;
 
-	for (int i = 0; i < num_samples; ) {
-		float t = (float)i / (float) wave_format.nSamplesPerSec;
-		samples[i] = sin_minmax_Hz(0, max, 440, t);
-		samples[i + 1] = sin_minmax_Hz(0, max, 440, t);
-		i += 2;
+	float freq = 2*(float)wave_format.nSamplesPerSec / (float)bufferFrameCount;
+	//float freq = 440;
+
+	for (int i = 0; i < num_samples/2; ++i) {
+		float t = (float)i * dt;
+		samples[2*i] = sin_minmax_Hz(min, max, freq, t); // L channel
+		samples[2*i + 1] = sin_minmax_Hz(min, max, freq, t); // R channel
 	}
 
 	hr = pRenderClient->GetBuffer(bufferFrameCount, &pData);
@@ -161,13 +168,10 @@ HRESULT PlayAudioStream() {
 	hr = pRenderClient->ReleaseBuffer(bufferFrameCount, flags);
 	IF_ERROR_EXIT(hr);
 
-	// Calculate the actual duration of the allocated buffer.
-	hnsActualDuration = (double)REFTIMES_PER_SEC *
-		bufferFrameCount / wave_format.nSamplesPerSec;
 
 	printf("bufferFrameCount: %d, FrameSize_bytes: %d\n", bufferFrameCount, FrameSize_bytes);
 
-	// this should increase thread priority to ensure low latency :D
+	// increase thread priority for optimal av performance
 	DWORD taskIndex = 0;
 	hTask = AvSetMmThreadCharacteristics(TEXT("Pro Audio"), &taskIndex);
 	if (hTask == NULL) {
@@ -185,19 +189,17 @@ HRESULT PlayAudioStream() {
 		hr = pRenderClient->GetBuffer(bufferFrameCount, &pData);
 		IF_ERROR_EXIT(hr);
 
-		//if (numFramesAvailable == 0) break;
-
 		memcpy(pData, samples, FrameSize_bytes);
 
-		hr = pRenderClient->ReleaseBuffer(bufferFrameCount, flags);
+		hr = pRenderClient->ReleaseBuffer(bufferFrameCount, 0);
 		IF_ERROR_EXIT(hr);
 	}
 
-	// Wait for last data in buffer to play before stopping.
-	Sleep((DWORD)(hnsActualDuration / REFTIMES_PER_MILLISEC / 2));
 
 	hr = pAudioClient->Stop();  // Stop playing.
 	IF_ERROR_EXIT(hr);
+
+exit_err:
 
 	SAFE_RELEASE(pEnumerator)
 	SAFE_RELEASE(pDevice)

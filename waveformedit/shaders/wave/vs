@@ -19,19 +19,19 @@ vec4 get_coefs() {
 //		vec4(b*b*b, b*b, b, 1),
 //		vec4(c*c*c, c*c, c, 1),
 //		vec4(1, 1, 1, 1)));
-//	
+//
 	float i = Position_VS_in;
 
 	vec4 ys = vec4(
-	sin(600*i - TIME), 
-	cos(0.5*i + TIME), 
-	sin(13*i + i*TIME), 
+	sin(600*i - TIME),
+	cos(0.5*i + TIME),
+	sin(13*i + TIME), 
 	cos(6.1*i + TIME));
 
 	vec4 coefs = ys*coefs_inv;
 
 	return coefs;
- 
+
 }
 
 void main() {
