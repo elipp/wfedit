@@ -190,6 +190,7 @@ void draw() {
 
 //	mat4 mvp = mat4::proj_ortho(0.0, WIN_W, WIN_H, 0.0, -1.0, 1.0) * mat4::translate(0.0, (WIN_H / 2), 0.0) * mat4::scale(WIN_W, WIN_H, 1.0);
 	mat4 mvp = mat4::proj_ortho(0.0, 1.0, -1.0, 1.0, -1.0, 1.0);
+//	mat4 mvp = mat4::proj_ortho(0.0, 50, -50, 50, -1.0, 1.0);
 
 	wave_shader->update_uniform_mat4("uMVP", mvp);
 	
