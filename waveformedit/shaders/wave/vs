@@ -5,6 +5,10 @@
 layout(location = 0) in float Position_VS_in;
 out vec4 coefs_VS_out;
 
+float rand(vec2 co){
+    return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);
+}
+
 uniform float TIME;
 
 uniform mat4 coefs_inv;
@@ -23,10 +27,10 @@ vec4 get_coefs() {
 	float i = Position_VS_in;
 
 	vec4 ys = vec4(
-	sin(600*i - TIME), 
-	cos(0.5*i + TIME), 
-	sin(13*i + i*TIME), 
-	cos(6.1*i + TIME));
+	i*sin(TWO_PI*i*TIME),
+	i*cos(1.12*TWO_PI*i*TIME),
+	i*sin(TWO_PI*i*TIME), 
+	i*cos(TWO_PI*i*TIME));
 
 	vec4 coefs = ys*coefs_inv;
 

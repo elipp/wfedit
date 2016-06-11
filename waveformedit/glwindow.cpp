@@ -43,7 +43,7 @@ static bool _main_loop_running = true;
 bool main_loop_running() { return _main_loop_running; }
 void stop_main_loop() { _main_loop_running = false; }
 
-#define NUM_CURVES 8096
+#define NUM_CURVES 1024
 
 void kill_GL_window();
 
@@ -190,6 +190,7 @@ void draw() {
 
 //	mat4 mvp = mat4::proj_ortho(0.0, WIN_W, WIN_H, 0.0, -1.0, 1.0) * mat4::translate(0.0, (WIN_H / 2), 0.0) * mat4::scale(WIN_W, WIN_H, 1.0);
 	mat4 mvp = mat4::proj_ortho(0.0, 1.0, -1.0, 1.0, -1.0, 1.0);
+//	mat4 mvp = mat4::proj_ortho(0.0, 50, -50, 50, -1.0, 1.0);
 
 	wave_shader->update_uniform_mat4("uMVP", mvp);
 	
