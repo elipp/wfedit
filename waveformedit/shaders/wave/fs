@@ -12,8 +12,8 @@ float S(float t) {
 
 void main() {
   frag_color = vec4(
-  S(pow(S(TIME*dydx), dydx)),
-  S(TIME*S(TIME*dydx)),
-  S(dydx*S(TIME*dydx)),
+  S(dydx),
+  0,
+  1.0,
   1.0);
 }

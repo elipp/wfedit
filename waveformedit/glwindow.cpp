@@ -16,6 +16,7 @@
 #include "texture.h"
 #include "shader.h"
 #include "lin_alg.h"
+#include "sound.h"
 
 bool mouse_locked = false;
 
@@ -43,7 +44,7 @@ static bool _main_loop_running = true;
 bool main_loop_running() { return _main_loop_running; }
 void stop_main_loop() { _main_loop_running = false; }
 
-#define NUM_CURVES 64
+#define NUM_CURVES 1
 
 void kill_GL_window();
 
@@ -152,32 +153,69 @@ vec4 solve_equation_coefs(const float *points) {
 
 static float GT = 0;
 
+static float *get_samples(const vec4 &coefs, wave_format_t *fmt) {
+	UINT32 frame_size = SND_get_frame_size();
+
+	float *buf = new float[frame_size * fmt->num_channels];
+
+	float dt = 1.0 / (float)frame_size;
+	float x = 0;
+
+	for (int i = 0; i < frame_size; ++i) {
+		float x2 = x*x;
+		float x3 = x2*x;
+		vec4 tmp = vec4(x3, x2, x, 1);
+		
+		float v = 0.6*dot4(coefs, tmp);
+	
+		buf[2*i] = v;
+		buf[2*i + 1] = v;
+
+		x += dt;
+	}
+
+	return buf;
+
+}
 
 void update_data() {
 
-	GT += 0.001;
+	//static float patch_buffer[NUM_CURVES];
 
-	static float patch_buffer[NUM_CURVES];
-	//static std::mt19937 rng(time(0));
-	//static vec4 eq_coefs[100];
-	//
-	//static auto rand_float = std::bind(std::uniform_real_distribution<float>(-1, 1), rng);
-
-	for (int i = 0; i < NUM_CURVES; ++i) {
-		patch_buffer[i] = (float)i / (float)NUM_CURVES;
-	}
-
+	//for (int i = 0; i < NUM_CURVES; ++i) {
+	//	patch_buffer[i] = (float)i / (float)NUM_CURVES;
+	//}
 
 	mat4 m = mat4(vec4(0, 0, 0, 1), vec4((0.33*0.33*0.33), (0.33*0.33), 0.33, 1), vec4((0.66*0.66*0.66), (0.66*0.66), 0.66, 1), vec4(1, 1, 1, 1));
 	m.invert();
 
+	float y0, y1, y2, y3;
+	y0 = 0.0;
+	y1 = sin(GT);
+	y2 = -sin(GT);
+	y3 = 0.0;
+
+	float points[8] = {
+		0.0, y0,
+		0.33, y1,
+		0.66, y2,
+		1.0, y3
+	};
+
+	while (!SND_initialized()) { Sleep(250); }
+
+	wave_format_t fmt = SND_get_format_info();
+	vec4 coefs = solve_equation_coefs(points);
+	float *samplebuf = get_samples(coefs, &fmt);
+
+	SND_write_to_buffer(samplebuf);
+
 	glUseProgram(wave_shader->getProgramHandle());
 	wave_shader->update_uniform_mat4("coefs_inv", m);
+	wave_shader->update_uniform_vec4("y_coords", vec4(y0, y1, y2, y3));
 
-	//printf("a = %f, b = %f, c = %f, d = %f\n", eq_coefs(0), eq_coefs(1), eq_coefs(2), eq_coefs(3));
-
-	glBindBuffer(GL_ARRAY_BUFFER, wave_VBOid);
-	glBufferSubData(GL_ARRAY_BUFFER, 0, NUM_CURVES*sizeof(float), patch_buffer);
+	//glBindBuffer(GL_ARRAY_BUFFER, wave_VBOid);
+	//glBufferSubData(GL_ARRAY_BUFFER, 0, NUM_CURVES*sizeof(float), patch_buffer);
 
 }
 
@@ -188,15 +226,14 @@ void draw() {
 
 	glUseProgram(wave_shader->getProgramHandle());
 
-//	mat4 mvp = mat4::proj_ortho(0.0, WIN_W, WIN_H, 0.0, -1.0, 1.0) * mat4::translate(0.0, (WIN_H / 2), 0.0) * mat4::scale(WIN_W, WIN_H, 1.0);
 	mat4 mvp = mat4::proj_ortho(0.0, 1.0, -1.0, 1.0, -1.0, 1.0);
-//	mat4 mvp = mat4::proj_ortho(0.0, 50, -50, 50, -1.0, 1.0);
 
 	wave_shader->update_uniform_mat4("uMVP", mvp);
-	
 	GT += 0.006;
 	
 	wave_shader->update_uniform_1f("TIME", GT);
+
+	update_data();
 
 	glBindVertexArray(wave_VAOid);	
 	glDrawArrays(GL_PATCHES, 0, NUM_CURVES);

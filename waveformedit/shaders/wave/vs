@@ -11,6 +11,7 @@ float rand(vec2 co){
 
 uniform float TIME;
 
+uniform vec4 y_coords;
 uniform mat4 coefs_inv;
 
 vec4 get_coefs() {
@@ -26,13 +27,7 @@ vec4 get_coefs() {
 //
 	float i = Position_VS_in;
 
-	vec4 ys = vec4(
-	sin(600*i - TIME),
-	cos(0.5*i + TIME),
-	sin(13*i + TIME), 
-	cos(6.1*i + TIME));
-
-	vec4 coefs = ys*coefs_inv;
+	vec4 coefs = y_coords*coefs_inv;
 
 	return coefs;
 

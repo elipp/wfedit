@@ -1,3 +1,4 @@
+#include "wfedit.h"
 #include "glwindow.h"
 #include "lin_alg.h"
 #include "sound.h"
@@ -5,8 +6,18 @@
 #include <cstdio>
 #include <iostream>
 
-DWORD WINAPI sound_thread_proc(LPVOID lpParam) {
+static int program_running = 1;
+
+static DWORD WINAPI sound_thread_proc(LPVOID lpParam) {
 	return (DWORD)PlayAudioStream();
+}
+
+int wfedit_running() {
+	return program_running;
+}
+
+static void wfedit_stop() {
+	program_running = 0;
 }
 
 
@@ -31,6 +42,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 	MSG msg;
 	
+	DWORD sound_threadID;
+	CreateThread(NULL, 0, sound_thread_proc, NULL, 0, &sound_threadID);
+
 	if (!create_GL_window("WFEDIT", WIN_W, WIN_H)) {
 		return EXIT_FAILURE;
 	}
@@ -41,14 +55,11 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 	bool running = true;
 
-	DWORD sound_threadID;
 
-	CreateThread(NULL, 0, sound_thread_proc, NULL, 0, &sound_threadID);
-
-	while (running) {
+	while (wfedit_running()) {
 		while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE) > 0) {
 			if (msg.message == WM_QUIT) {
-				running = false;
+				wfedit_stop();
 				break;
 			}
 			else {
