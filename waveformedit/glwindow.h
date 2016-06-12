@@ -4,8 +4,8 @@
 #include <gl/GL.h>
 #include "glext_loader.h"
 
-#define WIN_W 1200
-#define WIN_H 960
+#define WIN_W 1600
+#define WIN_H 900
 
 void swap_buffers();
 

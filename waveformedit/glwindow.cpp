@@ -29,8 +29,8 @@ extern HINSTANCE win_hInstance;
 
 static HWND hWnd_child = NULL;
 
-unsigned WINDOW_WIDTH = 1280;
-unsigned WINDOW_HEIGHT = 960;
+unsigned WINDOW_WIDTH = WIN_W;
+unsigned WINDOW_HEIGHT = WIN_H;
 
 static GLuint wave_VBOid, wave_VAOid;
 
@@ -38,7 +38,7 @@ bool fullscreen = false;
 bool active = TRUE;
 
 static Texture *gradient_texture;
-static ShaderProgram *wave_shader, *point_shader;
+static ShaderProgram *wave_shader, *point_shader, *grid_shader;
 
 static bool _main_loop_running = true;
 bool main_loop_running() { return _main_loop_running; }
@@ -96,59 +96,6 @@ vec4 solve_equation_coefs(const float *points) {
 	vec4 correct = m.transposed() * vec4(points[1], points[3], points[5], points[7]);
 
 	return correct;
-
-	//
-	////printf("(%.2f, %.2f, %.2f, %.2f)\n(%.2f, %.2f, %.2f, %.2f)\n(%.2f, %.2f, %.2f, %.2f)\n(%.2f, %.2f, %.2f, %.2f)\n",
-	////	m(0, 0), m(1, 0), m(2, 0), m(3, 0),
-	////	m(0, 1), m(1, 1), m(2, 1), m(3, 1),
-	////	m(0, 2), m(1, 2), m(2, 2), m(3, 2),
-	////	m(0, 3), m(1, 3), m(2, 3), m(3, 3));
-
-	////printf("correct coefs: (%.2f, %.2f, %.2f, %.2f)\n\n", correct(0), correct(1), correct(2), correct(3));
-
-	//static const vec4 minus_one(-1, -1, -1, -1);
-
-	//vec4 abc1(a, b, c, 1);
-	//vec4 abcm1 = abc1 + minus_one;
-
-	//float apb = a + b;
-	//float apc = a + c;
-	//float bpc = b + c;
-
-	//float amb = a - b;
-	//float amc = a - c;
-	//float bmc = b - c;
-	//float cmb = c - b;
-
-	//float ab = a*b;
-	//float ac = a*c;
-	//float bc = b*c;
-
-	//vec4 c1_numer(1, -(bpc + 1), bc + bpc, -bc);
-	//vec4 c2_numer(-1, apc + 1, -(ac + apc), ac);
-	//vec4 c3_numer(1, -(apb + 1), ab + apb, -ab);
-	//vec4 c4_numer(-1, apb + c, -(bc + a*bpc), ab*c);
-	//
-	//vec4 c1_denom(1.0/(abcm1(0) * amb * amc));
-	//vec4 c2_denom(1.0/(amb * abcm1(1) * bmc));
-	//vec4 c3_denom(1.0/(amc * bmc * abcm1(2)));
-	//vec4 c4_denom(1.0/(abcm1(0) * abcm1(1) *abcm1(2)));
-	//
-	//mat4 mi = mat4(componentwise_multiply(c1_numer, c1_denom),
-	//	componentwise_multiply(c2_numer, c2_denom),
-	//	componentwise_multiply(c3_numer, c3_denom),
-	//	componentwise_multiply(c4_numer, c4_denom));
-
-	//vec4 other = mi*vec4(points[1], points[3], points[5], points[7]);
-
-	////printf("(%.2f, %.2f, %.2f, %.2f)\n(%.2f, %.2f, %.2f, %.2f)\n(%.2f, %.2f, %.2f, %.2f)\n(%.2f, %.2f, %.2f, %.2f)\n",
-	////	mi(0, 0), mi(1, 0), mi(2, 0), mi(3, 0),
-	////	mi(0, 1), mi(1, 1), mi(2, 1), mi(3, 1),
-	////	mi(0, 2), mi(1, 2), mi(2, 2), mi(3, 2),
-	////	mi(0, 3), mi(1, 3), mi(2, 3), mi(3, 3));
-	////printf("calculated coefs: (%.2f, %.2f, %.2f, %.2f)\n\n", other(0), other(1), other(2), other(3));
-
-	//return other;
 }
 
 static float GT = 0;
@@ -186,7 +133,12 @@ void update_data() {
 	//	patch_buffer[i] = (float)i / (float)NUM_CURVES;
 	//}
 
-	mat4 m = mat4(vec4(0, 0, 0, 1), vec4((0.33*0.33*0.33), (0.33*0.33), 0.33, 1), vec4((0.66*0.66*0.66), (0.66*0.66), 0.66, 1), vec4(1, 1, 1, 1));
+	mat4 m = mat4(
+		vec4(0, 0, 0, 1), 
+		vec4((0.33*0.33*0.33), (0.33*0.33), 0.33, 1), 
+		vec4((0.66*0.66*0.66), (0.66*0.66), 0.66, 1), 
+		vec4(1, 1, 1, 1));
+	
 	m.invert();
 
 	float y0, y1, y2, y3;
@@ -226,7 +178,7 @@ void draw() {
 
 	glUseProgram(wave_shader->getProgramHandle());
 
-	mat4 mvp = mat4::proj_ortho(0.0, 1.0, -1.0, 1.0, -1.0, 1.0);
+	mat4 mvp = mat4::proj_ortho(-0.1, 1.1, -1.5, 1.5, -1.0, 1.0);
 
 	wave_shader->update_uniform_mat4("uMVP", mvp);
 	GT += 0.006;
@@ -237,6 +189,12 @@ void draw() {
 
 	glBindVertexArray(wave_VAOid);	
 	glDrawArrays(GL_PATCHES, 0, NUM_CURVES);
+
+	glBindVertexArray(0);
+
+	glUseProgram(grid_shader->getProgramHandle());
+	grid_shader->update_uniform_mat4("uMVP", mvp);
+	glDrawArrays(GL_PATCHES, 0, 1);
 	
 	//glUseProgram(point_shader->getProgramHandle());
 
@@ -284,6 +242,9 @@ int init_GL() {
 
 	wave_shader = new ShaderProgram("shaders/wave", default_attrib_bindings);
 	point_shader = new ShaderProgram("shaders/pointplot", default_attrib_bindings);
+	grid_shader = new ShaderProgram("shaders/grid", default_attrib_bindings);
+
+	// TODO: CHECK SHADERS FOR BADNESS :D
 
 	glGenVertexArrays(1, &wave_VAOid);
 	glBindVertexArray(wave_VAOid);

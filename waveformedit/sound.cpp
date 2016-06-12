@@ -115,6 +115,8 @@ static HRESULT find_smallest_128_aligned(IMMDevice *pDevice, IAudioClient *pAudi
 	// TODO: explain this? :D
 	int n = ((int)(floorf(((float)MinimumDevicePeriod / REFTIMES_PER_SEC * wave_format->nSamplesPerSec) / 32.0) + 1)) * 32;
 
+	n *= 3;
+
 	REFERENCE_TIME hnsPeriod = (REFERENCE_TIME)(REFTIMES_PER_SEC * (float)n / (float)wave_format->nSamplesPerSec + 0.5);
 
 	hr = pAudioClient->Initialize(AUDCLNT_SHAREMODE_EXCLUSIVE, AUDCLNT_STREAMFLAGS_EVENTCALLBACK, hnsPeriod, hnsPeriod, wave_format, NULL);

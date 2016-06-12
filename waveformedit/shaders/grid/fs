@@ -1,0 +1,11 @@
+#version 400
+
+out vec4 frag_color;
+
+in vec4 pos;
+
+void main() {
+    float fr = fract(100*pos.x);
+    if (fr > 0.5) { discard; }
+    frag_color = vec4(0.7);
+}

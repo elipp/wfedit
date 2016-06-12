@@ -2,7 +2,7 @@
 
 #define TWO_PI (6.28318531)
 
-layout(location = 0) in float Position_VS_in;
+//layout(location = 0) in float Position_VS_in;
 out vec4 coefs_VS_out;
 
 float rand(vec2 co){
@@ -15,20 +15,8 @@ uniform vec4 y_coords;
 uniform mat4 coefs_inv;
 
 vec4 get_coefs() {
-//	float a = 0.0;
-//	float b = 0.33;
-//	float c = 0.66;
-//	float d = 1.0;
-//
-//	mat4 m = inverse(mat4(vec4(a*a*a, a*a, a, 1),
-//		vec4(b*b*b, b*b, b, 1),
-//		vec4(c*c*c, c*c, c, 1),
-//		vec4(1, 1, 1, 1)));
-//
-	float i = Position_VS_in;
 
 	vec4 coefs = y_coords*coefs_inv;
-
 	return coefs;
 
 }

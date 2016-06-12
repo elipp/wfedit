@@ -1,0 +1,8 @@
+#version 400
+
+uniform float zoomlevel;
+out float zoom;
+
+void main() {
+    zoom = zoomlevel;
+}
