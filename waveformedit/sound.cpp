@@ -61,14 +61,12 @@ size_t SND_write_to_buffer(const float *data) {
 	main_buffer_lock.lock();
 
 	for (int i = 0; i < frame_size; ++i) {
-		SMPL_TYPE v = (SMPL_TYPE)(max*data[i]);
-	
-		//printf("%.5f\n", (float)v);
-
-		main_buffer[2*i] = v;
-		main_buffer[2*i + 1] = (SMPL_TYPE)(max*data[i]);
+		SMPL_TYPE vl = (SMPL_TYPE)(max*data[2*i]);
+		SMPL_TYPE vr = (SMPL_TYPE)(max*data[2*i + 1]);
+		
+		main_buffer[2*i] = vl;
+		main_buffer[2*i + 1] = vr;
 	}
-
 	main_buffer_lock.unlock();
 
 	return 1;

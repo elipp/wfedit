@@ -7,6 +7,6 @@ uniform mat4 uMVP;
 out vec4 pos;
 
 void main() {
-    gl_Position = uMVP*vec4(gl_TessCoord.x, 2*(gl_TessCoord.y - 0.5) + 1.0/11.0, 0.0, 1.0);
-    pos = gl_Position;
+    pos = vec4(gl_TessCoord.x, 2*(gl_TessCoord.y - 0.5) + 1.0/11.0, 0.0, 1.0);
+    gl_Position = uMVP*pos;
 }

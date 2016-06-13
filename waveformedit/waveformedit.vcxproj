@@ -129,6 +129,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="curve.cpp" />
     <ClCompile Include="glext_loader.cpp" />
     <ClCompile Include="glwindow.cpp" />
     <ClCompile Include="lodepng.cpp" />
@@ -138,6 +139,7 @@
     <ClCompile Include="wfedit.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="curve.h" />
     <ClInclude Include="glext_loader.h" />
     <ClInclude Include="glwindow.h" />
     <ClInclude Include="lodepng.h" />
@@ -145,6 +147,7 @@
     <ClInclude Include="shader.h" />
     <ClInclude Include="sound.h" />
     <ClInclude Include="texture.h" />
+    <ClInclude Include="timer.h" />
     <ClInclude Include="wfedit.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

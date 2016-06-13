@@ -2,9 +2,12 @@
 #include "glwindow.h"
 #include "lin_alg.h"
 #include "sound.h"
+#include "curve.h"
+#include "timer.h"
 
 #include <cstdio>
 #include <iostream>
+#include <cassert>
 
 static int program_running = 1;
 
@@ -41,7 +44,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	static double time_per_frame_ms = 0;
 
 	MSG msg;
-	
+
 	DWORD sound_threadID;
 	CreateThread(NULL, 0, sound_thread_proc, NULL, 0, &sound_threadID);
 

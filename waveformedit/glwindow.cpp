@@ -17,6 +17,7 @@
 #include "shader.h"
 #include "lin_alg.h"
 #include "sound.h"
+#include "curve.h"
 
 bool mouse_locked = false;
 
@@ -43,6 +44,8 @@ static ShaderProgram *wave_shader, *point_shader, *grid_shader;
 static bool _main_loop_running = true;
 bool main_loop_running() { return _main_loop_running; }
 void stop_main_loop() { _main_loop_running = false; }
+
+
 
 #define NUM_CURVES 1
 
@@ -98,12 +101,22 @@ vec4 solve_equation_coefs(const float *points) {
 	return correct;
 }
 
+static float *sample_buffer = NULL;
+
 static float GT = 0;
 
-static float *get_samples(const vec4 &coefs, wave_format_t *fmt) {
-	UINT32 frame_size = SND_get_frame_size();
+static int allocate_static_buf(size_t size) {
+	if (sample_buffer == NULL) {
+		sample_buffer = new float[size];
+		return 1;
+	}
+	return 0;
+}
 
-	float *buf = new float[frame_size * fmt->num_channels];
+
+
+static int get_samples(const vec4 &coefs, wave_format_t *fmt) {
+	UINT32 frame_size = SND_get_frame_size();
 
 	float dt = 1.0 / (float)frame_size;
 	float x = 0;
@@ -114,14 +127,17 @@ static float *get_samples(const vec4 &coefs, wave_format_t *fmt) {
 		vec4 tmp = vec4(x3, x2, x, 1);
 		
 		float v = 0.6*dot4(coefs, tmp);
+
+		//printf("v: %.4f\n", v);
 	
-		buf[2*i] = v;
-		buf[2*i + 1] = v;
+		sample_buffer[2*i] = v;
+		sample_buffer[2*i + 1] = v;
 
 		x += dt;
 	}
 
-	return buf;
+
+	return 1;
 
 }
 
@@ -158,9 +174,10 @@ void update_data() {
 
 	wave_format_t fmt = SND_get_format_info();
 	vec4 coefs = solve_equation_coefs(points);
-	float *samplebuf = get_samples(coefs, &fmt);
+	allocate_static_buf(fmt.num_channels * SND_get_frame_size());
+	get_samples(coefs, &fmt);
 
-	SND_write_to_buffer(samplebuf);
+	SND_write_to_buffer(sample_buffer);
 
 	glUseProgram(wave_shader->getProgramHandle());
 	wave_shader->update_uniform_mat4("coefs_inv", m);
@@ -193,14 +210,14 @@ void draw() {
 	glBindVertexArray(0);
 
 	glUseProgram(grid_shader->getProgramHandle());
+	grid_shader->update_uniform_1f("tess_level", 11);
 	grid_shader->update_uniform_mat4("uMVP", mvp);
 	glDrawArrays(GL_PATCHES, 0, 1);
-	
-	//glUseProgram(point_shader->getProgramHandle());
 
-	//point_shader->update_uniform_mat4("uMVP", mvp);
-
-	//glDrawArrays(GL_POINTS, 0, 4);
+	/*grid_shader->update_uniform_1f("tess_level", 22);
+	mvp = mvp * mat4::scale(0.50, 2.0, 0) * mat4::rotate(3.1415926536 / 2.0, 0, 0, 1) * mat4::translate(-0.5, 1.0, 0.0);
+	grid_shader->update_uniform_mat4("uMVP", mvp);
+	glDrawArrays(GL_PATCHES, 0, 1);*/
 
 }
 

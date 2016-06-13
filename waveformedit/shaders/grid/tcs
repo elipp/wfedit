@@ -4,7 +4,9 @@ layout (vertices=1) out;
 
 in float zoom[];
 
+uniform float tess_level;
+
 void main() {
-    gl_TessLevelOuter[0] = 11; // calculate this based on the zoom level
+    gl_TessLevelOuter[0] = tess_level; // calculate this based on the zoom level
     gl_TessLevelOuter[1] = 1;
 }

@@ -6,6 +6,6 @@ in vec4 pos;
 
 void main() {
     float fr = fract(100*pos.x);
-    if (fr > 0.5) { discard; }
+    if (fr > 0.4) { discard; }
     frag_color = vec4(0.7);
 }

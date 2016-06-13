@@ -12,8 +12,8 @@ float S(float t) {
 
 void main() {
   frag_color = vec4(
-  S(dydx),
-  0,
-  1.0,
+  pow(1.2, abs(dydx)),
+  pow(2, -abs(dydx)),
+  0.0,
   1.0);
 }
