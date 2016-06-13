@@ -1,6 +1,16 @@
 #include "curve.h"
 
-const mat4 BEZIER4::weights = mat4(vec4(1, -3, 3, -1), vec4(0, 3, -6, 3), vec4(0, 0, 3, -3), vec4(0, 0, 0, 1));
+const mat4 BEZIER4::weights = mat4(
+	vec4(1, -3, 3, -1), 
+	vec4(0, 3, -6, 3), 
+	vec4(0, 0, 3, -3), 
+	vec4(0, 0, 0, 1));
+
+const mat4 CATMULLROM4::weights = mat4(
+	vec4(1, 0, -3, 2),
+	vec4(0, 0, 3, -2),
+	vec4(0, 1, -2, 1),
+	vec4(0, 0, -1, 1));
 
 static inline vec2 bezier2(const vec2 &a, const vec2 &b, float t) {
 	return (1 - t)*a + t*b;
@@ -39,10 +49,6 @@ vec2 BEZIER4::evaluate(float t) {
 	return multiply4_24(tv, matrix_repr);
 }
 
-vec2 BEZIER4::evaluate_matrix(float t) {
-
-}
-
 float BEZIER4::dydx(float t, float dt) {
 
 	t = t + dt > 1.0 ? t - dt : t;
@@ -78,3 +84,26 @@ float BEZIER4::dydt(float t, float dt) {
 BEZIER4::BEZIER4(const vec2 &P0, const vec2 &P1, const vec2 &P2, const vec2 &P3) : control_points{ P0, P1, P2, P3 } {
 	matrix_repr = multiply44_24(weights, mat24(P0, P1, P2, P3));
 };
+
+CATMULLROM4::CATMULLROM4(const vec2 &P0, const vec2 &P1, const vec2 &P2, const vec2 &P3, float tension) {
+	const float &T = tension; // just an alias
+
+	mat4 intermediate = 0.5*mat4(
+		vec4(0, 0, -T, 0), 
+		vec4(2, 0, 0, -T), 
+		vec4(0, 2, T, 0), 
+		vec4(0, 0, 0, T));
+	
+	mat24 P(P0, P1, P2, P3);
+
+	matrix_repr = multiply44_24(weights, multiply44_24(intermediate, P));
+}
+
+vec2 CATMULLROM4::evaluate(float s) {
+	float s2 = s*s;
+	float s3 = s2*s;
+
+	vec4 S(1, s, s2, s3);
+
+	return multiply4_24(S, matrix_repr);
+}

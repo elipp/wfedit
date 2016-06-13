@@ -48,3 +48,15 @@ struct BEZIER4 {
 
 	BEZIER4(const vec2 &P0, const vec2 &P1, const vec2 &P2, const vec2 &P3);
 };
+
+struct CATMULLROM4 {
+
+	static const mat4 weights;
+	//mat4 weights;
+	vec2 control_points[4];
+	mat24 matrix_repr;
+	vec2 evaluate(float t);
+
+	CATMULLROM4(const vec2 &P0, const vec2 &P1, const vec2 &P2, const vec2 &P3, float tension);
+
+};

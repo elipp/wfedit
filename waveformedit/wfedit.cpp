@@ -45,6 +45,22 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 	MSG msg;
 
+//	BEZIER4 B(vec2(0.0, 5.0), vec2(0.42, -5.0), vec2(0.67, 2.0), vec2(1.0, 0.33));
+//	CATMULLROM4 C(vec2(0.0, 0.0), vec2(0.3, 1.0), vec2(0.6, -1.0), vec2(1.0, 0.0), 1);
+//
+//#define NUM_ITERATIONS 250
+//	
+//	float dt = 1.0 / NUM_ITERATIONS;
+//
+//	for (int i = 0; i < NUM_ITERATIONS; ++i) {
+//		float t = (float)i * dt;
+//		vec2 v = C.evaluate(t);
+//
+//		printf("(%f, %f)\n", v.x, v.y);
+//	}
+//
+//
+	
 	DWORD sound_threadID;
 	CreateThread(NULL, 0, sound_thread_proc, NULL, 0, &sound_threadID);
 
