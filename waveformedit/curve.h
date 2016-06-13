@@ -34,29 +34,36 @@ struct mat24 { // 2 columns, 4 rows
 	}
 };
 
+struct BEZIER4;
+struct CATMULLROM4;
 
 struct BEZIER4 {
 
 	static const mat4 weights;
 
-	vec2 control_points[4];
+	vec2 P0, P1, P2, P3;
 	mat24 matrix_repr;
 	vec2 evaluate(float t);
 	float dydx(float t, float dt = 0.001);
 	float dxdt(float t, float dt = 0.001);
 	float dydt(float t, float dt = 0.001);
 
-	BEZIER4(const vec2 &P0, const vec2 &P1, const vec2 &P2, const vec2 &P3);
+	BEZIER4(const vec2 &aP0, const vec2 &aP1, const vec2 &aP2, const vec2 &aP3);
+	
+	CATMULLROM4 convert_to_CATMULLROM4();
+
 };
 
 struct CATMULLROM4 {
 
 	static const mat4 weights;
-	//mat4 weights;
-	vec2 control_points[4];
+	vec2 P0, P1, P2, P3;
+	float tension;
 	mat24 matrix_repr;
 	vec2 evaluate(float t);
 
-	CATMULLROM4(const vec2 &P0, const vec2 &P1, const vec2 &P2, const vec2 &P3, float tension);
+	CATMULLROM4(const vec2 &aP0, const vec2 &aP1, const vec2 &aP2, const vec2 &aP3, float tension);
+
+	BEZIER4 convert_to_BEZIER4();
 
 };

@@ -81,11 +81,23 @@ float BEZIER4::dydt(float t, float dt) {
 	return (p1.y - p0.y) / dt;
 }
 
-BEZIER4::BEZIER4(const vec2 &P0, const vec2 &P1, const vec2 &P2, const vec2 &P3) : control_points{ P0, P1, P2, P3 } {
-	matrix_repr = multiply44_24(weights, mat24(P0, P1, P2, P3));
+BEZIER4::BEZIER4(const vec2 &aP0, const vec2 &aP1, const vec2 &aP2, const vec2 &aP3) 
+	: P0(aP0), P1(aP1), P2(aP2), P3(aP3) {
+
+	matrix_repr = multiply44_24(BEZIER4::weights, mat24(P0, P1, P2, P3));
 };
 
-CATMULLROM4::CATMULLROM4(const vec2 &P0, const vec2 &P1, const vec2 &P2, const vec2 &P3, float tension) {
+CATMULLROM4 BEZIER4::convert_to_CATMULLROM4() {
+	return CATMULLROM4(
+		P3 + 6 * (P0 - P1),
+		P0,
+		P3,
+		P1 + 6 * (P3 - P2),
+		1);
+}
+
+CATMULLROM4::CATMULLROM4(const vec2 &aP0, const vec2 &aP1, const vec2 &aP2, const vec2 &aP3, float a_tension)
+: P0(aP0), P1(aP1), P2(aP2), P3(aP3), tension(a_tension) {
 	const float &T = tension; // just an alias
 
 	mat4 intermediate = 0.5*mat4(
@@ -106,4 +118,14 @@ vec2 CATMULLROM4::evaluate(float s) {
 	vec4 S(1, s, s2, s3);
 
 	return multiply4_24(S, matrix_repr);
+}
+
+BEZIER4 CATMULLROM4::convert_to_BEZIER4() {
+	float coef = 1.0 / (6.0*tension);
+	return BEZIER4(
+		P1,
+		P1 + coef*(P2 - P0),
+		P2 + coef*(P3 - P1),
+		P2);
+
 }
