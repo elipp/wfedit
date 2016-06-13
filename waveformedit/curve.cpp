@@ -1,5 +1,8 @@
 #include "curve.h"
 
+#include <xmmintrin.h>
+#include <smmintrin.h>
+
 const mat4 BEZIER4::weights = mat4(
 	vec4(1, -3, 3, -1), 
 	vec4(0, 3, -6, 3), 
@@ -84,10 +87,65 @@ float BEZIER4::dydt(float t, float dt) {
 BEZIER4::BEZIER4(const vec2 &aP0, const vec2 &aP1, const vec2 &aP2, const vec2 &aP3) 
 	: P0(aP0), P1(aP1), P2(aP2), P3(aP3) {
 
-	matrix_repr = multiply44_24(BEZIER4::weights, mat24(P0, P1, P2, P3));
+	points24 = mat24(P0, P1, P2, P3);
+	matrix_repr = multiply44_24(BEZIER4::weights, points24);
 };
 
-CATMULLROM4 BEZIER4::convert_to_CATMULLROM4() {
+BEZIER4::BEZIER4(const mat24 &PV) 
+	: points24(PV) {
+
+	P0 = points24.row(0);
+	P1 = points24.row(1);
+	P2 = points24.row(2);
+	P3 = points24.row(3);
+
+	matrix_repr = multiply44_24(BEZIER4::weights, points24);
+};
+
+BEZIER4 *BEZIER4::split(float t) {
+	if (t < 0.0 || t > 1.0) {
+		return NULL;
+	}
+
+	float tm1 = t - 1;
+	float tm2 = tm1*tm1;
+	float tm3 = tm2*tm1;
+
+	float t2 = t*t;
+	float t3 = t2*t;
+
+	// Refer to http://pomax.github.io/bezierinfo/, §10: Splitting curves using matrices.
+
+	mat4 first(
+		vec4(1, -tm1, tm2, -tm3),
+		vec4(0, t, -2 * (tm1)*t, 3 * tm2*t),
+		vec4(0, 0, t2, -3 * tm1*t2),
+		vec4(0, 0, 0, t3)
+		);
+
+	mat4 tmp = first.transposed();
+
+	mat4 second = mat4(
+		tmp.column(3),
+		vec4(_mm_shuffle_ps(tmp.column(2).getData(), tmp.column(2).getData(), _MM_SHUFFLE(3, 0, 1, 2))),
+		vec4(_mm_shuffle_ps(tmp.column(1).getData(), tmp.column(1).getData(), _MM_SHUFFLE(2, 3, 0, 1))),
+		vec4(_mm_shuffle_ps(tmp.column(0).getData(), tmp.column(0).getData(), _MM_SHUFFLE(1, 2, 3, 0)))
+		)
+		.transposed();
+
+	mat24 C1 = multiply44_24(first, this->points24);
+	mat24 C2 = multiply44_24(second, this->points24);
+
+	BEZIER4 *ret = new BEZIER4[2];
+
+	ret[0] = BEZIER4(C1);
+	ret[1] = BEZIER4(C2);
+
+	return ret;
+	
+}
+
+CATMULLROM4 BEZIER4::convert_to_CATMULLROM4() const {
 	return CATMULLROM4(
 		P3 + 6 * (P0 - P1),
 		P0,
@@ -106,11 +164,30 @@ CATMULLROM4::CATMULLROM4(const vec2 &aP0, const vec2 &aP1, const vec2 &aP2, cons
 		vec4(0, 2, T, 0), 
 		vec4(0, 0, 0, T));
 	
-	mat24 P(P0, P1, P2, P3);
+	points24 = mat24(P0, P1, P2, P3);
 
-	matrix_repr = multiply44_24(weights, multiply44_24(intermediate, P));
+	matrix_repr = multiply44_24(CATMULLROM4::weights, multiply44_24(intermediate, points24));
 }
 
+
+CATMULLROM4::CATMULLROM4(const mat24 &PV, float a_tension)
+	: points24(PV), tension(a_tension) {
+	
+	P0 = points24.row(0);
+	P1 = points24.row(1);
+	P2 = points24.row(2);
+	P3 = points24.row(3);
+
+	const float &T = tension; // just an alias
+
+	mat4 intermediate = 0.5*mat4(
+		vec4(0, 0, -T, 0),
+		vec4(2, 0, 0, -T),
+		vec4(0, 2, T, 0),
+		vec4(0, 0, 0, T));
+
+	matrix_repr = multiply44_24(CATMULLROM4::weights, multiply44_24(intermediate, points24));
+}
 vec2 CATMULLROM4::evaluate(float s) {
 	float s2 = s*s;
 	float s3 = s2*s;
@@ -120,7 +197,22 @@ vec2 CATMULLROM4::evaluate(float s) {
 	return multiply4_24(S, matrix_repr);
 }
 
-BEZIER4 CATMULLROM4::convert_to_BEZIER4() {
+
+CATMULLROM4 *CATMULLROM4::split(float s) const {
+	BEZIER4 B = this->convert_to_BEZIER4();
+	BEZIER4 *SB = B.split(s);
+
+	// no idea if this is correct or not XD
+
+	CATMULLROM4 *SC = new CATMULLROM4[2];
+	SC[0] = SB[0].convert_to_CATMULLROM4();
+	SC[1] = SB[1].convert_to_CATMULLROM4();
+
+	delete[] SB;
+	return SC;
+}
+
+BEZIER4 CATMULLROM4::convert_to_BEZIER4() const {
 	float coef = 1.0 / (6.0*tension);
 	return BEZIER4(
 		P1,
